@@ -2,73 +2,71 @@
 skinparam classAttributeIconSize 0
 
 class Game {
-    - board : Board
-    - players : Player[2]
-    - currentPlayerIndex : int
-    - status : GameStatus
-    + start() : void
-    + playTurn(row : int, col : int) : void
-    + checkGameOver() : boolean
-    + getWinner() : Player
+  - board : Board
+  - players : Player[2]
+  - currentPlayerIndex : int
+  - status : GameStatus
+  + start() : void
+  + playTurn(row : int, col : int) : void
+  + checkGameOver() : boolean
+  + getWinner() : Player
 }
 
 class Board {
-    - cells : Cell[][]
-    - size : int
-    - blackCount : int
-    - whiteCount : int
-    + initialize() : void
-    + isValidMove(row : int, col : int) : boolean
-    + placePiece(row : int, col : int, color : PieceColor) : void
-    + flipPieces(row : int, col : int) : void
+  - cells : Cell[][]
+  - size : int
+  - blackCount : int
+  - whiteCount : int
+  + initialize() : void
+  + isValidMove(row : int, col : int) : boolean
+  + placePiece(row : int, col : int, color : PieceColor) : void
+  + flipPieces(row : int, col : int) : void
 }
 
 class Cell {
-    - row : int
-    - col : int
-    - piece : Piece
-    - isObstacle : boolean
-    + setPiece(p : Piece) : void
-    + getPiece() : Piece
-    + isEmpty() : boolean
-    + setObstacle(status : boolean) : void
+  - row : int
+  - col : int
+  - piece : Piece
+  + setPiece(p : Piece) : void
+  + getPiece() : Piece
+  + isEmpty() : boolean
 }
 
 class Piece {
-    - color : PieceColor
-    + Piece(color : PieceColor)
-    + flip() : void
-    + getColor() : PieceColor
+  - color : PieceColor
+  + Piece(color : PieceColor)
+  + flip() : void
+  + getColor() : PieceColor
 }
 
 abstract class Player {
-    - name : String
-    - color : PieceColor
-    - score : int
-    + {abstract} makeMove(board : Board) : int[]
-    + updateScore(points : int) : void
-    + getName() : String
-    + getColor() : PieceColor
+  - name : String
+  - color : PieceColor
+  - score : int
+  + {abstract} makeMove(board : Board) : int[]
+  + updateScore(points : int) : void
+  + getName() : String
+  + getColor() : PieceColor
 }
 
 class HumanPlayer {
-    - inputMethod : InputDevice
-    + HumanPlayer(name : String, color : PieceColor)
-    + makeMove(board : Board) : int[]
+  - inputMethod : InputDevice
+  + HumanPlayer(name : String, color : PieceColor)
+  + makeMove(board : Board) : int[]
 }
 
 class ComputerPlayer {
-    - difficultyLevel : int
-    - strategy : EvaluationStrategy
-    + ComputerPlayer(color : PieceColor, difficulty : int)
-    + makeMove(board : Board) : int[]
+  - difficultyLevel : int
+  - strategy : EvaluationStrategy
+  + ComputerPlayer(color : PieceColor, difficulty : int)
+  + makeMove(board : Board) : int[]
 }
 
 Game "1" *-- "1" Board : contains >
 Game "1" *-- "2" Player : has >
 Board "1" *-- "1..*" Cell : consists of >
 Cell "1" o-- "0..1" Piece : holds >
+
 Player <|-- HumanPlayer
 Player <|-- ComputerPlayer
-
 @enduml
