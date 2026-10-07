@@ -17,7 +17,14 @@ The current domain model focuses exclusively on core game logic (without network
 7. `ComputerPlayer` - AI opponent heuristics
 
 ## Backend (Django)
-The backend lives in [`backend/`](./backend): a Django project (`config`) with a Django REST Framework app (`api`).
+The backend lives in [`backend/`](./backend) and is split so each part can be worked on independently:
+
+| Folder | Responsibility |
+|---|---|
+| `backend/config/` | Django project settings and root URL routing |
+| `backend/api/` | HTTP endpoints (Django REST Framework views, serializers, URLs) |
+| `backend/game/` | Pure-Python game rules: `Board`, `Cell`, `Piece`, `Player`, `HumanPlayer`, `ComputerPlayer`, `Game` (no Django imports) |
+| `backend/database/` | Django models and migrations for persisting games, moves and players |
 
 ```bash
 python -m venv .venv
