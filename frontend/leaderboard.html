@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MyReversi — Leaderboard</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  {% include "partials/header.html" %}
+
+  <main>
+    <h1>Leaderboard</h1>
+    <p class="lead">Ranked by wins, then fewest losses. Games against the computer and online both count.</p>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="num">#</th>
+              <th>Player</th>
+              <th class="num">Wins</th>
+              <th class="num">Losses</th>
+              <th class="num">Draws</th>
+              <th class="num">Played</th>
+              <th class="num">Win rate</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body"></tbody>
+        </table>
+      </div>
+      <p class="empty-note" id="leaderboard-empty" hidden>No games have been finished yet — be the first!</p>
+    </div>
+  </main>
+
+  <script src="/static/js/common.js"></script>
+  <script>
+    (async function () {
+      const body = document.getElementById('leaderboard-body');
+      const empty = document.getElementById('leaderboard-empty');
+      const me = Store.get('name', '');
+      try {
+        const rows = await api('leaderboard/');
+        empty.hidden = rows.length > 0;
+        body.innerHTML = rows.map((p, i) => `
+          <tr${p.name === me ? ' style="font-weight:600"' : ''}>
+            <td class="num">${i + 1}</td>
+            <td>${escapeHtml(p.name)}${p.name === me ? ' (you)' : ''}</td>
+            <td class="num">${p.wins}</td>
+            <td class="num">${p.losses}</td>
+            <td class="num">${p.draws}</td>
+            <td class="num">${p.played}</td>
+            <td class="num">${Math.round((100 * p.wins) / p.played)}%</td>
+          </tr>`).join('');
+      } catch (err) {
+        empty.hidden = false;
+        empty.textContent = err.message;
+      }
+    })();
+  </script>
+</body>
+</html>

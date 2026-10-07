@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MyReversi — Game history</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  {% include "partials/header.html" %}
+
+  <main>
+    <h1>Game history</h1>
+    <p class="lead">Every finished game is saved. Open one to replay it move by move.</p>
+
+    <div class="card">
+      <form class="filter-row" id="filter-form">
+        <input type="text" id="filter-name" placeholder="Filter by username" aria-label="Filter by username">
+        <button class="btn" type="submit">Filter</button>
+        <button class="btn" type="button" id="clear-filter">Show all</button>
+      </form>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Finished</th>
+              <th>Black</th>
+              <th class="num">Score</th>
+              <th>White</th>
+              <th>Result</th>
+              <th>Board</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="history-body"></tbody>
+        </table>
+      </div>
+      <p class="empty-note" id="history-empty" hidden>No finished games yet.</p>
+    </div>
+  </main>
+
+  <script src="/static/js/common.js"></script>
+  <script src="/static/js/history.js"></script>
+</body>
+</html>

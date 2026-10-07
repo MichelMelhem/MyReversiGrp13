@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MyReversi — Lobby</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  {% include "partials/header.html" %}
+
+  <main>
+    <h1>Game lobby</h1>
+    <p class="lead">Play Reversi against the computer, or get paired with another player online.</p>
+
+    <div class="card resume-banner" id="resume" hidden>
+      <div>
+        <strong>You have a game in progress.</strong>
+        <div class="field-hint" id="resume-detail"></div>
+      </div>
+      <a class="btn btn-primary" id="resume-link" href="#">Resume game</a>
+    </div>
+
+    <div class="home-grid">
+      <form class="card" id="new-game-form" novalidate>
+        <h2>New game</h2>
+
+        <div class="field">
+          <label for="name">Username</label>
+          <input type="text" id="name" name="name" maxlength="30" autocomplete="nickname"
+                 placeholder="e.g. Aurelius" required>
+        </div>
+
+        <fieldset class="field">
+          <legend>Opponent</legend>
+          <div class="segmented">
+            <input type="radio" name="mode" id="mode-computer" value="computer" checked>
+            <label for="mode-computer">Computer</label>
+            <input type="radio" name="mode" id="mode-online" value="online">
+            <label for="mode-online">Online player</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field" id="difficulty-field">
+          <legend>Difficulty</legend>
+          <div class="segmented">
+            <input type="radio" name="difficulty" id="diff-easy" value="easy">
+            <label for="diff-easy">Easy</label>
+            <input type="radio" name="difficulty" id="diff-normal" value="normal" checked>
+            <label for="diff-normal">Normal</label>
+            <input type="radio" name="difficulty" id="diff-hard" value="hard">
+            <label for="diff-hard">Hard</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Board size</legend>
+          <div class="segmented">
+            <input type="radio" name="board_size" id="size-6" value="6">
+            <label for="size-6">6 × 6</label>
+            <input type="radio" name="board_size" id="size-8" value="8" checked>
+            <label for="size-8">8 × 8</label>
+            <input type="radio" name="board_size" id="size-10" value="10">
+            <label for="size-10">10 × 10</label>
+          </div>
+          <span class="field-hint" id="size-hint">Online, you are only paired with players who picked the same size.</span>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Board colour</legend>
+          <div class="swatches">
+            <input type="radio" name="theme" id="theme-classic" value="classic" checked>
+            <label for="theme-classic" style="background:#1f7a4d" title="Classic green"></label>
+            <input type="radio" name="theme" id="theme-ocean" value="ocean">
+            <label for="theme-ocean" style="background:#1e5f8c" title="Ocean blue"></label>
+            <input type="radio" name="theme" id="theme-wood" value="wood">
+            <label for="theme-wood" style="background:#b98a52" title="Wood"></label>
+            <input type="radio" name="theme" id="theme-slate" value="slate">
+            <label for="theme-slate" style="background:#4a5560" title="Slate"></label>
+          </div>
+        </fieldset>
+
+        <button class="btn btn-primary btn-block" type="submit" id="start-btn">Start game</button>
+        <p class="error-text" id="form-error" role="alert"></p>
+      </form>
+
+      <section class="card">
+        <h2>How it works</h2>
+        <ul class="feature-list">
+          <li>Black always moves first. Against the computer you play Black.</li>
+          <li>Online, colours are drawn at random when you are paired.</li>
+          <li>Legal squares are highlighted on your turn — click one, or type a square like <strong>D3</strong>.</li>
+          <li>If you have no legal move your turn is skipped automatically.</li>
+          <li>Leaving a game in progress counts as a forfeit. If your connection drops you have 30 seconds to come back.</li>
+          <li>Every finished game is saved — replay it from <a href="/history/">History</a> and climb the <a href="/leaderboard/">Leaderboard</a>.</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <script src="/static/js/common.js"></script>
+  <script src="/static/js/index.js"></script>
+</body>
+</html>

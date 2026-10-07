@@ -1,26 +1,54 @@
 @startuml
 skinparam classAttributeIconSize 0
+title MyReversi - refined domain classes (backend/game)
+
+enum PieceColor {
+  BLACK
+  WHITE
+  + opponent : PieceColor
+}
+
+enum GameStatus {
+  WAITING
+  IN_PROGRESS
+  FINISHED
+}
 
 class Game {
   - board : Board
   - players : Player[2]
   - currentPlayerIndex : int
   - status : GameStatus
+  - forfeitedBy : PieceColor
   + start() : void
-  + playTurn(row : int, col : int) : void
+  + resume(currentColor : PieceColor, status : GameStatus) : void
+  + playTurn(row : int, col : int, color : PieceColor) : TurnResult
+  + validMoves() : int[][]
   + checkGameOver() : boolean
+  + forfeit(color : PieceColor) : void
   + getWinner() : Player
+}
+
+class TurnResult {
+  + color : PieceColor
+  + row : int
+  + col : int
+  + flipped : int[][]
+  + skipped : PieceColor
+  + gameOver : boolean
 }
 
 class Board {
   - cells : Cell[][]
   - size : int
-  - blackCount : int
-  - whiteCount : int
   + initialize() : void
-  + isValidMove(row : int, col : int) : boolean
-  + placePiece(row : int, col : int, color : PieceColor) : void
-  + flipPieces(row : int, col : int) : void
+  + isValidMove(row : int, col : int, color : PieceColor) : boolean
+  + getValidMoves(color : PieceColor) : int[][]
+  + piecesToFlip(row : int, col : int, color : PieceColor) : Cell[]
+  + placePiece(row : int, col : int, color : PieceColor) : Cell[]
+  + flipPieces(cells : Cell[]) : void
+  + count(color : PieceColor) : int
+  + isFull() : boolean
 }
 
 class Cell {
@@ -30,6 +58,7 @@ class Cell {
   + setPiece(p : Piece) : void
   + getPiece() : Piece
   + isEmpty() : boolean
+  + getColor() : PieceColor
 }
 
 class Piece {
@@ -50,20 +79,23 @@ abstract class Player {
 }
 
 class HumanPlayer {
-  - inputMethod : InputDevice
+  - pendingMove : int[]
   + HumanPlayer(name : String, color : PieceColor)
+  + selectSquare(row : int, col : int) : void
   + makeMove(board : Board) : int[]
 }
 
 class ComputerPlayer {
-  - difficultyLevel : int
-  - strategy : EvaluationStrategy
-  + ComputerPlayer(color : PieceColor, difficulty : int)
+  - difficultyLevel : String
+  + ComputerPlayer(color : PieceColor, difficulty : String)
   + makeMove(board : Board) : int[]
+  - calculateBestMove(board : Board) : int[]
+  - minimax(board : Board, depth : int) : int
 }
 
 Game "1" *-- "1" Board : contains >
 Game "1" *-- "2" Player : has >
+Game ..> TurnResult : produces >
 Board "1" *-- "1..*" Cell : consists of >
 Cell "1" o-- "0..1" Piece : holds >
 

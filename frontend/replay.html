@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MyReversi — Replay</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  {% include "partials/header.html" %}
+
+  <main>
+    <div class="game-layout">
+      <div class="board-wrap">
+        <div class="board-frame" id="board"></div>
+      </div>
+
+      <aside class="side">
+        <div class="players">
+          <div class="player-card" id="card-black">
+            <span class="disc black" aria-hidden="true"></span>
+            <div class="player-meta">
+              <div class="player-name" data-name>Black</div>
+              <div class="player-tag">Black</div>
+            </div>
+            <div class="player-count" data-count>2</div>
+          </div>
+          <div class="player-card" id="card-white">
+            <span class="disc white" aria-hidden="true"></span>
+            <div class="player-meta">
+              <div class="player-name" data-name>White</div>
+              <div class="player-tag">White</div>
+            </div>
+            <div class="player-count" data-count>2</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="turn-banner" id="replay-status">Loading replay…</div>
+          <p class="event-text" id="replay-result"></p>
+          <div class="replay-controls" style="margin-top: 12px">
+            <button class="btn" type="button" id="first-btn" aria-label="First move">⏮</button>
+            <button class="btn" type="button" id="prev-btn" aria-label="Previous move">◀</button>
+            <button class="btn btn-primary" type="button" id="play-btn">Play</button>
+            <button class="btn" type="button" id="next-btn" aria-label="Next move">▶</button>
+            <button class="btn" type="button" id="last-btn" aria-label="Last move">⏭</button>
+          </div>
+          <div class="replay-controls" style="margin-top: 12px">
+            <input type="range" id="scrubber" min="0" max="0" value="0" aria-label="Move number">
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Moves</h2>
+          <ol class="move-list" id="move-list"></ol>
+        </div>
+
+        <div class="btn-row">
+          <a class="btn" href="/history/">Back to history</a>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script src="/static/js/common.js"></script>
+  <script src="/static/js/replay.js"></script>
+</body>
+</html>

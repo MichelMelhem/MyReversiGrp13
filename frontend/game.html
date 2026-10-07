@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MyReversi — Game</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  {% include "partials/header.html" %}
+
+  <main>
+    <div class="game-layout">
+      <div class="board-wrap">
+        <div class="board-frame" id="board"></div>
+      </div>
+
+      <aside class="side">
+        <div class="players">
+          <div class="player-card" id="card-black">
+            <span class="disc black" aria-hidden="true"></span>
+            <div class="player-meta">
+              <div class="player-name" data-name>Black</div>
+              <div class="player-tag" data-tag>Black</div>
+            </div>
+            <div class="player-count" data-count>2</div>
+          </div>
+          <div class="player-card" id="card-white">
+            <span class="disc white" aria-hidden="true"></span>
+            <div class="player-meta">
+              <div class="player-name" data-name>White</div>
+              <div class="player-tag" data-tag>White</div>
+            </div>
+            <div class="player-count" data-count>2</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="turn-banner" id="turn-banner" aria-live="polite">Loading game…</div>
+          <p class="event-text" id="event-text"></p>
+
+          <form class="coord-form" id="coord-form" autocomplete="off">
+            <input type="text" id="coord-input" maxlength="3" placeholder="Type a square, e.g. D3"
+                   aria-label="Type a square to play, for example D3">
+            <button class="btn" type="submit">Play</button>
+          </form>
+          <p style="margin: 12px 0 0">
+            <label class="toggle"><input type="checkbox" id="hints-toggle" checked> Highlight legal moves</label>
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Moves</h2>
+          <ol class="move-list" id="move-list"></ol>
+          <p class="empty-note" id="no-moves">No moves yet.</p>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-danger" type="button" id="leave-btn">Leave game</button>
+          <a class="btn" href="/">Back to lobby</a>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div class="overlay" id="waiting-overlay" hidden>
+    <div class="card modal" role="dialog" aria-modal="true" aria-labelledby="waiting-title">
+      <div class="spinner" aria-hidden="true"></div>
+      <h2 id="waiting-title">Waiting for an opponent…</h2>
+      <p class="lead" id="waiting-detail">You will be paired with the next player who joins.</p>
+      <button class="btn" type="button" id="cancel-wait-btn">Cancel</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="result-overlay" hidden>
+    <div class="card modal" role="dialog" aria-modal="true" aria-labelledby="result-title">
+      <h2 id="result-title">Game over</h2>
+      <p class="lead" id="result-reason"></p>
+      <p class="score-line" id="result-score"></p>
+      <div class="btn-row">
+        <button class="btn btn-primary" type="button" id="rematch-btn">Play again</button>
+        <a class="btn" id="replay-link" href="#">Replay</a>
+        <a class="btn" href="/">Lobby</a>
+        <button class="btn" type="button" id="close-result-btn">View board</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/common.js"></script>
+  <script src="/static/js/game.js"></script>
+</body>
+</html>

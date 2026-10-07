@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MyReversi — Rules</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  {% include "partials/header.html" %}
+
+  <main class="prose">
+    <h1>How to play Reversi</h1>
+    <p class="lead">Two players, one black and one white, take turns placing discs on the board.</p>
+
+    <div class="card">
+      <h2>Rules</h2>
+      <ol>
+        <li>The game starts with four discs in the centre: two black and two white, placed diagonally.</li>
+        <li><strong>Black always moves first.</strong></li>
+        <li>A legal move places a disc on an empty square so that it <em>outflanks</em> one or more
+            opponent discs — traps a straight line of them (horizontal, vertical or diagonal) between the new
+            disc and another disc of your colour.</li>
+        <li>Every outflanked opponent disc, in every direction, is <em>flipped</em> to your colour.</li>
+        <li>If you have no legal move, your turn is <em>skipped</em> and your opponent plays again.</li>
+        <li>The game ends when neither player can move (usually when the board is full).
+            The player with more discs wins; equal counts is a draw.</li>
+      </ol>
+    </div>
+
+    <div class="card" style="margin-top: 16px">
+      <h2>MyReversi extras</h2>
+      <ul>
+        <li><strong>Board size:</strong> 6×6, 8×8 or 10×10.</li>
+        <li><strong>Board colour:</strong> classic green, ocean, wood or slate.</li>
+        <li><strong>Computer opponent:</strong> Easy plays random legal moves, Normal prefers corners and edges,
+            Hard searches several moves ahead.</li>
+        <li><strong>Leaving or disconnecting:</strong> leaving a game in progress is a forfeit. A disconnected
+            online player has 30 seconds to reconnect before forfeiting.</li>
+        <li><strong>History &amp; leaderboard:</strong> every finished game is saved and can be replayed.</li>
+      </ul>
+    </div>
+  </main>
+
+  <script src="/static/js/common.js"></script>
+</body>
+</html>
