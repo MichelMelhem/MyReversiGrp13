@@ -34,20 +34,106 @@ The domain classes follow our class diagram:
 6. `HumanPlayer` - Human interface interactions
 7. `ComputerPlayer` - AI opponent heuristics
 
-## Running it
+## How to run the project
+
+### 1. Prerequisites
+* **Python 3.12 or newer** (Django 6.1 needs it). Check with `python --version` (on macOS/Linux you may need `python3`).
+* **Git**, to clone the repository.
+* A web browser. Nothing else is needed: the frontend is plain HTML/CSS served by Django, so there is no Node/npm step.
+
+### 2. Get the code
+```bash
+git clone https://github.com/MichelMelhem/MyReversiGrp13.git
+cd MyReversiGrp13
+```
+
+### 3. Create and activate a virtual environment (first time only)
 ```bash
 python -m venv .venv
-# Windows: .venv\Scripts\activate   |   macOS/Linux: source .venv/bin/activate
+```
+Then activate it. Your prompt shows `(.venv)` once it is active:
+
+| System | Command |
+|---|---|
+| Windows (PowerShell) | `.venv\Scripts\Activate.ps1` |
+| Windows (Command Prompt) | `.venv\Scripts\activate.bat` |
+| Windows (Git Bash) | `source .venv/Scripts/activate` |
+| macOS / Linux | `source .venv/bin/activate` |
+
+If PowerShell refuses to run the script ("running scripts is disabled"), run this once and try again:
+`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
+
+### 4. Install the dependencies (first time, and after `requirements.txt` changes)
+```bash
 pip install -r requirements.txt
+```
+
+### 5. Create the database (first time, and after pulling new migrations)
+```bash
 cd backend
 python manage.py migrate
-python manage.py runserver      # open http://127.0.0.1:8000/
+```
+This creates `backend/db.sqlite3` (it is git-ignored, so everyone has their own local database).
+
+### 6. Start the server
+From the `backend/` folder:
+```bash
+python manage.py runserver
+```
+Open **http://127.0.0.1:8000/** in your browser. Stop the server with `Ctrl+C`.
+
+If port 8000 is already used, pick another one: `python manage.py runserver 8080`.
+
+### 7. Play
+* **Against the computer:** enter a username, choose *Computer*, a difficulty and a board size, then **Start game**.
+* **Online against another player:** open the site in two different browsers (or one normal and one private/incognito window). Enter a **different username** in each, choose *Online player* and the **same board size** in both. The second player is paired with the first automatically.
+* **From another computer on the same network:** find your machine's IP address (`ipconfig` on Windows, `ifconfig` / `ip addr` on macOS/Linux), allow it, and listen on all interfaces. For example, with IP `192.168.1.20`:
+  ```powershell
+  # Windows PowerShell
+  $env:DJANGO_ALLOWED_HOSTS = "localhost,127.0.0.1,192.168.1.20"
+  python manage.py runserver 0.0.0.0:8000
+  ```
+  ```bash
+  # macOS / Linux / Git Bash
+  DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,192.168.1.20 python manage.py runserver 0.0.0.0:8000
+  ```
+  Then open `http://192.168.1.20:8000/` on the other computer. Your firewall may ask you to allow Python.
+
+### 8. Run the tests
+From the `backend/` folder:
+```bash
 python manage.py test
 ```
 
-To try online play on one machine, open the site in two different browsers (or one normal and one private window), enter different usernames, choose **Online player** with the same board size in both.
+### Next time
+You only need to activate the virtual environment (step 3, activation command only), then:
+```bash
+cd backend
+python manage.py migrate     # only needed if someone added new migrations
+python manage.py runserver
+```
 
-Settings read `DJANGO_SECRET_KEY`, `DJANGO_DEBUG` (`1`/`0`) and `DJANGO_ALLOWED_HOSTS` (comma-separated) from the environment, with local-dev defaults.
+### Optional: admin site
+To browse saved players, games and moves at http://127.0.0.1:8000/admin/:
+```bash
+python manage.py createsuperuser
+```
+
+### Configuration
+Settings read these environment variables, with local-development defaults:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `DJANGO_SECRET_KEY` | dev-only key | Set a real secret outside local development |
+| `DJANGO_DEBUG` | `1` | `1` = debug on, `0` = off |
+| `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Comma-separated host names/IPs allowed to reach the server |
+
+### Troubleshooting
+* **`ModuleNotFoundError: No module named 'django'`**: the virtual environment is not active, or step 4 was skipped.
+* **`no such table: database_gamerecord`**: run `python manage.py migrate` (step 5).
+* **`python: can't open file 'manage.py'`**: you are not in the `backend/` folder.
+* **Online game stays on "Waiting for an opponent"**: both players must pick the same board size and use different usernames.
+* **`DisallowedHost` error when connecting from another device**: add that address to `DJANGO_ALLOWED_HOSTS`.
 
 ## API
 All endpoints are under `/api/`. A player receives a secret `token` when creating or joining a game and sends it back in the `X-Player-Token` header.
