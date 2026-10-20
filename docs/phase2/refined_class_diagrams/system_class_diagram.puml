@@ -1,0 +1,177 @@
+@startuml system_class_diagram
+!pragma layout elk
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+  ArrowColor #333333
+}
+skinparam package {
+  BackgroundColor #FAFAFA
+}
+title MyReversi - Refined System Class Diagram (client / server)\nPhase 2 - Group 13 - replaces Server and Client from Phase 1
+
+package "Client (browser: HTML/CSS + JavaScript)" as client {
+  class LobbyPage <<boundary>> {
+    - nameInput : String
+    - mode : String {computer, online}
+    - boardSize : int {6, 8, 10}
+    - difficulty : String {easy, normal, hard}
+    --
+    + startGame() : void
+    + resumeLastGame() : void
+  }
+  class GamePage <<boundary>> {
+    - gameId : UUID
+    - token : String
+    - state : GameState
+    - busy : boolean
+    --
+    + poll() : void
+    + play(row : int, col : int) : void
+    + leave() : void
+    - render(state : GameState) : void
+    - renderBoard(board, validMoves) : void
+    - showResult(state : GameState) : void
+  }
+  class HistoryPage <<boundary>> {
+    + load(name : String [0..1]) : void
+  }
+  class ReplayPage <<boundary>> {
+    - frames : Frame[*]
+    - index : int
+    + step(delta : int) : void
+  }
+  class ApiClient <<utility>> {
+    + api(path : String, method : String, body : Object, token : String) : Object
+    + saveSeat(gameId : UUID, token : String, color : String) : void
+    + getSeat(gameId : UUID) : Seat [0..1]
+    + escapeHtml(text : String) : String
+  }
+}
+
+package "Server (Python / Django REST framework)" as server {
+  class GameAPI <<control>> {
+    {method} POST /api/games/computer/
+    {method} POST /api/lobby/join/
+    {method} GET  /api/games/{id}/
+    {method} POST /api/games/{id}/move/
+    {method} POST /api/games/{id}/computer-move/
+    {method} POST /api/games/{id}/leave/
+    {method} GET  /api/games/{id}/replay/
+    {method} GET  /api/games/history/
+    {method} GET  /api/leaderboard/
+  }
+
+  class GameService <<control>> {
+    + {static} RECONNECT_WINDOW : Duration = 30 s
+    --
+    + createComputerGame(name : String, size : int, difficulty : String) : (GameRecord, String, String)
+    + joinOnlineGame(name : String, size : int) : (GameRecord, String, String)
+    + makeMove(gameId : UUID, token : String, row : int, col : int) : GameRecord
+    + playComputerTurn(gameId : UUID, token : String) : GameRecord
+    + leaveGame(gameId : UUID, token : String) : GameRecord
+    + pollGame(gameId : UUID, token : String) : (GameRecord, String)
+    + serialize(record : GameRecord, viewer : String) : GameState
+    + replayFrames(record : GameRecord) : Frame[*]
+    + buildGame(record : GameRecord) : Game
+    - finish(record : GameRecord, game : Game, reason : EndReason) : void
+    - recordTurn(record : GameRecord, game : Game, result : TurnResult) : void
+  }
+
+  class GameActionError <<exception>> {
+    + message : String
+    + status : int = 400
+  }
+
+  package "database (persistence)" {
+    class PlayerProfile <<entity>> {
+      + name : String {unique, max 30}
+      + wins : int = 0
+      + losses : int = 0
+      + draws : int = 0
+      + createdAt : DateTime
+      --
+      + gamesPlayed() : int
+    }
+    class GameRecord <<entity>> {
+      + id : UUID
+      + mode : Mode {computer, online}
+      + difficulty : String
+      + boardSize : int
+      + boardState : JSON
+      + currentColor : String
+      + status : Status {waiting, in_progress, finished, cancelled}
+      + blackToken : String
+      + whiteToken : String
+      + blackLastSeen : DateTime [0..1]
+      + whiteLastSeen : DateTime [0..1]
+      + blackCount : int
+      + whiteCount : int
+      + result : Result [0..1] {black, white, draw}
+      + endReason : EndReason [0..1] {no_moves, forfeit, disconnect}
+      + lastEvent : String
+      + createdAt : DateTime
+      + finishedAt : DateTime [0..1]
+      --
+      + playerName(color : String) : String
+      + colorForToken(token : String) : String [0..1]
+    }
+    class MoveRecord <<entity>> {
+      + number : int {unique per game}
+      + color : String
+      + row : int
+      + col : int
+      + flippedCount : int
+      + createdAt : DateTime
+      --
+      + getLabel() : String
+    }
+  }
+
+  package "game (domain - see domain class diagram)" as domain {
+    class Game
+    class Board
+    abstract class Player
+    class TurnResult
+  }
+}
+
+' --- client side ------------------------------------------------------
+LobbyPage ..> ApiClient : <<use>>
+GamePage ..> ApiClient : <<use>>
+HistoryPage ..> ApiClient : <<use>>
+ReplayPage ..> ApiClient : <<use>>
+LobbyPage ..> GamePage : opens >
+
+' --- client <-> server (HTTP + JSON, polled every 1.5 s) -----
+ApiClient "0..*" --> "1" GameAPI : sends requests to\n(HTTP/JSON, X-Player-Token,\npolled every 1.5 s) >
+
+' --- server side ------------------------------------------------------
+GameAPI ..> GameService : <<use>> delegates to
+GameService ..> GameActionError : <<throw>>
+GameService ..> Game : <<create>> rebuilds per request
+GameService ..> PlayerProfile : <<use>>
+GameService ..> GameRecord : <<use>> locks and saves
+GameService ..> MoveRecord : <<create>>
+GameService ..> TurnResult : reads
+
+GameRecord "0..*" --> "0..1\n+blackPlayer" PlayerProfile : black seat taken by >
+GameRecord "0..*" --> "0..1\n+whitePlayer" PlayerProfile : white seat taken by >
+GameRecord "1" *-- "0..*\n+moves {ordered by number}" MoveRecord : records >
+
+Game "1" *-- "1" Board : is played on >
+Game "1" o-- "2" Player : is played by >
+Game ..> TurnResult : <<create>>
+
+note right of GameRecord
+  A GameRecord is the saved form of one Game.
+  GameService.buildGame() turns it into
+  Game + Board + Players at the start of each
+  request, and writes the result back after.
+  A null player slot = the computer.
+end note
+@enduml
