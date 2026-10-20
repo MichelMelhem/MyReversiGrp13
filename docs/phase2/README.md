@@ -11,7 +11,7 @@ technical vulnerability review the lecturer asked for in the Phase 1 feedback.
 | `refined_class_diagrams/domain_class_diagram.*` | Fig. 1: domain classes (`game` package) with every attribute, operation and association |
 | `refined_class_diagrams/system_class_diagram.*` | Fig. 2: client/server classes (replaces `Server` and `Client` from Phase 1) |
 | `refined_class_diagrams/deployment_diagram.*` | Fig. 3: where each part runs (section 3.2.1 of the brief) |
-| `class_skeletons/` | Python and JavaScript class skeletons generated from Fig. 1 and Fig. 2 |
+| `class_skeletons/` | Class skeletons from Fig. 1 and Fig. 2 (2 Python files, 1 JavaScript file) |
 
 Diagrams are written in PlantUML (`.puml`) and exported as `.png`. To re-render:
 `java -jar plantuml.jar -tpng docs/phase2/refined_class_diagrams/*.puml`
@@ -107,18 +107,13 @@ checked each risk against the classes above.
 
 ## 4. Class skeletons
 
-`class_skeletons/` contains the skeletons for every class in Fig. 1 and Fig. 2:
+`class_skeletons/` has one file per part of the system:
 
 | File | Classes |
 |---|---|
-| `game/piece.py` | `PieceColor`, `Piece` |
-| `game/cell.py` | `Cell` |
-| `game/board.py` | `Board`, `InvalidMoveError` |
-| `game/player.py` | `Player`, `HumanPlayer`, `ComputerPlayer` |
-| `game/game.py` | `GameStatus`, `TurnResult`, `Game`, `NotYourTurnError`, `GameOverError` |
-| `database/models.py` | `PlayerProfile`, `GameRecord`, `MoveRecord` |
-| `api/services.py` | `GameService`, `GameActionError` |
-| `client/client_skeleton.js` | `ApiClient`, `LobbyPage`, `GamePage`, `HistoryPage`, `ReplayPage` |
+| `domain.py` | `PieceColor`, `GameStatus`, `InvalidMoveError`, `Piece`, `Cell`, `Board`, `Player`, `HumanPlayer`, `ComputerPlayer`, `Game` |
+| `server.py` | `PlayerProfile`, `GameRecord`, `MoveRecord`, `GameService` |
+| `client.js` | `ApiClient`, `LobbyPage`, `GamePage` |
 
-Each skeleton has the attributes, operation signatures with types, and docstrings that link back to the
-use cases. Method bodies are `...`. The full implementation is in `backend/` and `frontend/`.
+Each class shows its main attributes and its methods with a short docstring. Method bodies are `pass`.
+The skeletons only show the main methods; the full code is in `backend/` and `frontend/`.
