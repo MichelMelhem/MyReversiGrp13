@@ -1,0 +1,12 @@
+@startuml
+skinparam actorStyle hollow
+left to right direction
+
+object ":Player" as Player
+object ":Game" as Game
+object ":ScoreManager" as ScoreManager
+
+Player --> Game : 1: surrender()
+Game --> Game : 1.1: endGame()
+Game --> ScoreManager : 1.2: declareWinner()
+@enduml
