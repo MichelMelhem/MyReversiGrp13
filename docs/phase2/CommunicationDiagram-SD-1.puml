@@ -1,0 +1,14 @@
+@startuml
+skinparam actorStyle hollow
+left to right direction
+
+object ":Player" as Player
+object ":Game" as Game
+object ":Board" as Board
+object ":ScoreManager" as ScoreManager
+
+Player --> Game : 1: playMove(x, y)
+Game --> Board : 1.1: validate(x, y)
+Board --> Game : 1.2 [valide]: flipDiscs(x, y)
+Game --> ScoreManager : 1.3: updateScore()
+@enduml
