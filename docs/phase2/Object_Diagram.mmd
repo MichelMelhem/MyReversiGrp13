@@ -3,7 +3,7 @@ classDiagram
 
     class game1 {
         <<object>>
-        +int currentTurnIndex = 8
+        +int currentTurnIndex = 1
         +GameState status = IN_PROGRESS
     }
 
@@ -14,24 +14,24 @@ classDiagram
 
     class player1 {
         <<object>>
-        +String name = "Jeanne"
-        +int score = 24
-        +PieceColor color = BLACK
+        +String name = "Rose"
+        +int score = 0
+        +PieceColor color = WHITE
         +boolean isComputer = false
     }
 
     class player2 {
         <<object>>
-        +String name = "Robert"
-        +int score = 15
-        +PieceColor color = WHITE
-        +boolean isComputer = false
+        +String name = IAplayer
+        +int score = 0
+        +PieceColor color = BLACK
+        +boolean isComputer = true
     }
 
     class cellD4 {
         <<object>>
-        +int row = 3
-        +int col = 7
+        +int row = 4
+        +int col = 4
         +boolean isObstacle = false
     }
 
@@ -40,22 +40,24 @@ classDiagram
         +PieceColor color = WHITE
     }
 
-    class cellE4 {
+    class cellE5 {
         <<object>>
-        +int row = 3
-        +int col = 4
-        +boolean isObstacle = false
+        +int row=5
+        +int col=4
+        +boolean isObstacle=false;
     }
-
-    class pieceE4 {
+    class pieceE5{
         <<object>>
-        +PieceColor color = BLACK
+        +PieceColor color= WHITE 
     }
+  
+    
 
     game1 --> board1 : board
     game1 --> player1 : players[0]
     game1 --> player2 : players[1]
     board1 --> cellD4 : contains
-    board1 --> cellE4 : contains
+    board1 --> cellE5 : contains
     cellD4 --> pieceD4 : holds
-    cellE4 --> pieceE4 : holds
+    cellE5 --> pieceE5 : holds 
+    
