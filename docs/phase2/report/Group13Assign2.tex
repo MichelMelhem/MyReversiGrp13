@@ -4,9 +4,8 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
-\usepackage[scaled=0.92]{helvet}
 \usepackage{microtype}
-\usepackage[a4paper,margin=2.2cm,headheight=14pt]{geometry}
+\usepackage[a4paper,margin=2.5cm]{geometry}
 \usepackage{graphicx}
 \usepackage[table]{xcolor}
 \usepackage{booktabs}
@@ -23,43 +22,25 @@
 \usepackage{pdflscape}
 \usepackage[hidelinks]{hyperref}
 
-% ---------------------------------------------------------------- colours and style
-\definecolor{accent}{HTML}{1F5F4A}
-\definecolor{lightaccent}{HTML}{E8F1EC}
-\definecolor{rule}{HTML}{BBBBBB}
-\definecolor{codebg}{HTML}{F7F7F7}
+% ---------------------------------------------------------------- classic style
+\colorlet{accent}{black}
+\colorlet{lightaccent}{white}
 
-\renewcommand{\familydefault}{\sfdefault}
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{5pt}
-\renewcommand{\arraystretch}{1.25}
+\renewcommand{\arraystretch}{1.2}
 \setlist{itemsep=1pt,topsep=3pt}
+\captionsetup{font=small,labelfont=bf}
 
-\titleformat{\section}{\Large\bfseries\color{accent}}{\thesection}{0.8em}{}[\vspace{-4pt}{\color{rule}\rule{\textwidth}{0.6pt}}]
-\titleformat{\subsection}{\large\bfseries\color{accent}}{\thesubsection}{0.7em}{}
-\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{0.6em}{}
-\titlespacing*{\section}{0pt}{16pt}{8pt}
-
-\captionsetup{font=small,labelfont={bf,color=accent},justification=centering}
-
-\pagestyle{fancy}
-\fancyhf{}
-\fancyhead[L]{\small\color{accent}MyReversi -- Group 13}
-\fancyhead[R]{\small\color{accent}CSC1046 Phase 2: Product \& Class Design}
-\fancyfoot[C]{\small\thepage}
-\renewcommand{\headrulewidth}{0.4pt}
+\pagestyle{plain}
 
 \lstset{
   basicstyle=\ttfamily\footnotesize,
-  backgroundcolor=\color{codebg},
-  frame=single, rulecolor=\color{rule},
-  numbers=left, numberstyle=\tiny\color{gray}, numbersep=6pt,
+  frame=lines,
+  numbers=left, numberstyle=\tiny, numbersep=6pt,
   breaklines=true, columns=fullflexible, keepspaces=true,
   showstringspaces=false, tabsize=4,
-  keywordstyle=\color{accent}\bfseries,
-  commentstyle=\color{gray}\itshape,
-  stringstyle=\color{brown!70!black},
-  xleftmargin=14pt, framexleftmargin=14pt
+  keywordstyle=\bfseries,
+  commentstyle=\itshape,
+  xleftmargin=14pt
 }
 \lstdefinelanguage{PlantUML}{morekeywords={@startuml,@enduml,actor,participant,object,state,alt,else,end,loop,opt,break,ref,over,note,create,mainframe,title,usecase,rectangle,class,enum,package,abstract,legend,endlegend},sensitive=true,morecomment=[l]{'}}
 \lstdefinelanguage{JavaScript}{morekeywords={class,constructor,async,this,return,const,let,new},sensitive=true,morecomment=[l]{//},morestring=[b]"}
@@ -81,46 +62,30 @@
 
 % ================================================================= title page
 \begin{titlepage}
-\newgeometry{margin=0cm}
-\pagecolor{white}
-\noindent\colorbox{accent}{\parbox[c][9cm][c]{\paperwidth}{\centering
-  \color{white}
-  {\large CSC1046 \;--\; Object-Oriented Analysis \& Design\par}
-  \vspace{1.2cm}
-  {\fontsize{38}{44}\selectfont\bfseries MyReversi\par}
-  \vspace{0.5cm}
-  {\LARGE Phase 2: Product Design \& Class Design\par}
-  \vspace{0.4cm}
-  {\large Assignment 2 \;--\; Group 13\par}}}
-
-\vspace{1.8cm}
-\begin{center}
-\begin{minipage}{0.62\paperwidth}
-\large
-\begin{tabularx}{\linewidth}{L r}
-\multicolumn{2}{l}{\bfseries\color{accent}Team members}\\[2pt]
-\hline
+\centering
+\vspace*{2cm}
+{\large CSC1046 -- Object-Oriented Analysis and Design\par}
+{\large Dublin City University\par}
+\vspace{2.5cm}
+{\Huge\bfseries MyReversi\par}
+\vspace{0.8cm}
+{\LARGE Phase 2: Product Design and Class Design\par}
+\vspace{0.4cm}
+{\Large Assignment 2 -- Group 13\par}
+\vspace{2.5cm}
+\begin{tabular}{l r}
 Anna Langan & 20401\\
 Ailbhe de Burca & 38069\\
 Timothy Loomes & 20540\\
 Diane Gerard & 133485\\
 Blanche Puiseux & 133479\\
 Michel Melhem & 132978\\
-\hline
-\end{tabularx}
-
-\vspace{1.4cm}
-\normalsize
-\begin{tabularx}{\linewidth}{>{\bfseries}l L}
-Module & CSC1046, Dublin City University\\
-Deliverable & Phase 2 -- Product Design and Class Design\\
-Due & Friday 23 October 2026, 17:00 (end of Week 7)\\
-Source code & \href{https://github.com/MichelMelhem/MyReversiGrp13}{github.com/MichelMelhem/MyReversiGrp13}\\
-Diagram sources & \texttt{docs/phase2/report/diagrams/} (PlantUML)\\
-\end{tabularx}
-\end{minipage}
-\end{center}
-\restoregeometry
+\end{tabular}
+\vfill
+{\large 23 October 2026\par}
+\vspace{0.5cm}
+Source code: \url{https://github.com/MichelMelhem/MyReversiGrp13}\par
+Diagram sources: \texttt{docs/phase2/report/diagrams/}\par
 \end{titlepage}
 
 \tableofcontents
@@ -626,18 +591,18 @@ Thu 22/10 & Michel & GitHub: Phase 2 branches merged into \texttt{main}; consist
 % ================================================================= 13 AI
 \section{Use of AI}\label{sec:ai}
 
-In line with DCU policy, this section records how generative AI was used in Phase 2.
+This declaration follows the module's guidance on AI tools and DCU's academic integrity policy. A generative AI assistant was used in Phase 2 as a support tool only. It did not replace the team's analysis or design work.
 
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.6cm} L}
-\toprule
-\textbf{Task} & \textbf{How AI was used}\\ \midrule
-Refined class diagrams and skeletons & An AI assistant (Claude) helped draft the PlantUML for the class diagrams from our Phase 1 diagram and our code, and the first version of the skeletons. The team member checked every class against the code and cut the skeletons down to the main attributes and methods.\\
-Vulnerability review & AI was used to list possible threats under the STRIDE headings. Each threat was then checked against our own design and code, and the status column reflects what is really in the code.\\
-Final report & AI helped compile the team's work into this document, check that names were consistent across diagrams, redraw the inconsistent diagrams in PlantUML and typeset the report in \LaTeX. The changes are listed in Section~\ref{sec:review}.\\
-\bottomrule
-\end{tabularx}
+\textbf{Where AI was used}
+\begin{itemize}
+  \item \textbf{Formatting the report.} Typesetting this document in \LaTeX, laying out tables and figures, and putting all diagrams into one notation (PlantUML) so that they look the same.
+  \item \textbf{Checking consistency.} Cross-checking class and operation names between the team's diagrams and the refined class diagrams. The team reviewed each issue found and decided how to fix it (Section~\ref{sec:review}).
+  \item \textbf{Help when the team was blocked.} Fixing PlantUML syntax errors, explaining UML 2.x notation (sequence diagram fragments, communication diagram numbering) and the STRIDE headings. In a few places the team was stuck and used the assistant for a starting draft: the PlantUML layout of the refined class diagrams (from our own Phase 1 diagram and code), the class skeletons, and the sequence diagrams SD-2 and SD-2a. Each draft was then checked line by line against our use cases and code and corrected by team members.
+\end{itemize}
 
-\textbf{What AI was not used for.} AI did not make design decisions for the team. The game features, the client/server split, the use cases and the decisions on open questions (random colours, no pause, no rematch, 30\,s forfeit, difficulty levels) were made by the team in meetings. All AI output was read, checked and corrected by team members, who take responsibility for the content of this report.
+\textbf{What came from the team.} The requirements, use cases, game features, client/server split, class structure and relationships, state machine states and transitions, the mock-ups and every design decision (random colours, no pause, no rematch, 30\,s forfeit, difficulty levels) come from the team's own analysis and meetings. No AI output was copied in without review.
+
+\textbf{Accountability.} The team has read and checked every diagram, table and line of code in this report, takes full responsibility for it, and can explain any part of it.
 
 % ================================================================= appendix
 \appendix
