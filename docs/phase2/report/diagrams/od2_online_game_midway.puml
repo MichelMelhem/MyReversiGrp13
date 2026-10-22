@@ -1,0 +1,75 @@
+@startuml od2_online_game_midway
+!include style.iuml
+title OD-2  Online game in progress (after move 38, White to move)
+object "record7 : GameRecord" as rec {
+  mode = online
+  boardSize = 8
+  status = in_progress
+  currentColor = "white"
+  blackCount = 24
+  whiteCount = 18
+}
+object "jeanneProfile : PlayerProfile" as jp {
+  name = "Jeanne"
+  wins = 3
+  losses = 1
+}
+object "nicolasProfile : PlayerProfile" as np {
+  name = "Nicolas"
+  wins = 0
+  losses = 2
+}
+object "move38 : MoveRecord" as m38 {
+  number = 38
+  color = "black"
+  row = 4
+  col = 5
+  flippedCount = 3
+}
+object "game2 : Game" as game2 {
+  currentPlayerIndex = 1
+  status = IN_PROGRESS
+}
+object "board2 : Board" as board2 {
+  size = 8
+}
+object "jeanne : HumanPlayer" as jeanne {
+  name = "Jeanne"
+  color = BLACK
+  score = 24
+}
+object "nicolas : HumanPlayer" as nicolas {
+  name = "Nicolas"
+  color = WHITE
+  score = 18
+}
+object "f5 : Cell" as f5 {
+  row = 4
+  col = 5
+}
+object "e5 : Cell" as e5 {
+  row = 4
+  col = 4
+}
+object "q1 : Piece" as q1 {
+  color = BLACK
+}
+object "q2 : Piece" as q2 {
+  color = BLACK
+}
+rec --> jp : blackPlayer
+rec --> np : whitePlayer
+rec *-- m38 : moves[37]
+game2 --> board2 : board
+game2 --> jeanne : players[0]
+game2 --> nicolas : players[1]
+board2 --> f5 : cells
+board2 --> e5 : cells
+f5 --> q1 : piece
+e5 --> q2 : piece
+rec ..> game2 : GameService.buildGame()
+note right of e5
+  e5 was White and was flipped
+  to Black by move 38 (F5).
+end note
+@enduml

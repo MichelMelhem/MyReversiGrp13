@@ -1,0 +1,48 @@
+@startuml sd2_make_move
+!include style.iuml
+mainframe **sd** SD-2 Make Move (UC-02)
+actor "p : Player" as P
+participant "page : GamePage" as G
+participant "api : ApiClient" as A
+participant ": GameAPI" as API
+participant "svc : GameService" as S
+participant "rec : GameRecord" as R
+participant "g : Game" as GM
+participant "b : Board" as B
+
+note over G : Step 1: valid squares\nare highlighted
+P -> G : play(2, 3)
+note left of P : Step 2: Black selects D3
+G -> A : api("/api/games/{id}/move/", "POST", {row, col}, token)
+A -> API : POST /api/games/{id}/move/\n(X-Player-Token)
+API -> S : makeMove(gameId, token, 2, 3)
+S -> R : colorForToken(token)
+R --> S : "black"
+S -> GM : buildGame(rec)
+S -> GM : playTurn(2, 3, BLACK)
+GM -> B : placePiece(2, 3, BLACK)
+B -> B : piecesToFlip(2, 3, BLACK)
+alt no piece to flip or square occupied
+  note right of B : Ext 2a
+  B --> GM : InvalidMoveError
+  GM --> S : InvalidMoveError
+  S --> API : GameActionError("Move not allowed")
+  API --> A : 400 {error}
+  A --> G : error
+  G -> P : show "move not allowed", board unchanged
+else legal move
+  loop for each outflanked cell
+    B -> B : flipPieces(cells)\n/ piece.flip()
+  end
+  B --> GM : flipped cells
+  ref over GM, B : SD-2a Pass turn, skip turn or end game\n(Step 5, Ext 5a, Ext 5b)
+  GM --> S : TurnResult
+  S -> R : recordTurn(): <<create>> MoveRecord,\nsave boardState, counts
+  S --> API : rec
+  API --> A : 200 serialize(rec, viewer)
+  A --> G : state
+  G -> G : render(state)
+  G -> P : Step 4: updated board,\npiece counts, whose turn
+end
+note over G, API : The opponent's GamePage sees the new state\non its next poll() (at most 1.5 s later).
+@enduml

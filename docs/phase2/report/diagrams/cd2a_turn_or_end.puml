@@ -1,0 +1,13 @@
+@startuml cd2a_turn_or_end
+!include style.iuml
+title CD-2a  Pass turn, skip turn or end game - communication diagram from SD-2a
+object "svc : GameService" as S
+object "g : Game" as GM
+object "b : Board" as B
+object "r : TurnResult" as T
+GM --> GM : 1: advanceTurn(result)\n2a [opponent can move]: currentPlayerIndex = opponent\n2c.1 [nobody can move]: status = FINISHED\n2c.4: updateScores()\n2c.5: getWinner()
+GM --> B : 1.1: hasValidMove(opponent)\n2b.1 [only mover can move]: hasValidMove(mover)\n2c.2: count(BLACK)\n2c.3: count(WHITE)
+GM --> T : 2b.2: skipped = opponent\n2c.1.1: gameOver = true
+GM --> S : 2c.6: TurnResult (gameOver)
+S --> S : 2c.7: finish(rec, g, no_moves)
+@enduml

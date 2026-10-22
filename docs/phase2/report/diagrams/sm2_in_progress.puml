@@ -1,0 +1,24 @@
+@startuml sm2_in_progress
+!include style.iuml
+title SM-2  Game: IN_PROGRESS - sub-state diagram (UC-02, UC-03, UC-04)
+hide empty description
+state IN_PROGRESS {
+  [*] --> BlackToMove : start()\n/ Black always moves first
+  BlackToMove --> WhiteToMove : playTurn(row, col)\n[legal move and White has a valid move]
+  WhiteToMove --> BlackToMove : playTurn(row, col)\n[legal move and Black has a valid move]
+  BlackToMove --> BlackToMove : playTurn(row, col)\n[legal move and only Black has a valid move]\n/ White skipped
+  WhiteToMove --> WhiteToMove : playTurn(row, col)\n[legal move and only White has a valid move]\n/ Black skipped
+  BlackToMove --> BlackToMove : playTurn(row, col)\n[illegal move]\n/ InvalidMoveError, board unchanged
+  WhiteToMove --> WhiteToMove : playTurn(row, col)\n[illegal move]\n/ InvalidMoveError, board unchanged
+  BlackToMove --> [*] : playTurn(row, col)\n[neither player has a valid move]
+  WhiteToMove --> [*] : playTurn(row, col)\n[neither player has a valid move]
+}
+IN_PROGRESS --> FINISHED : gameOver\n[neither player has a valid move]
+IN_PROGRESS --> FINISHED : forfeit(color)\n[player quits or opponent gone > 30 s]
+note bottom of IN_PROGRESS
+  Each legal move runs Board.placePiece() -> Board.flipPieces()
+  -> Piece.flip(), then GameService saves a MoveRecord.
+  Against the computer, playComputerTurn() calls
+  ComputerPlayer.makeMove(board) and then Game.playTurn().
+end note
+@enduml

@@ -1,0 +1,31 @@
+@startuml sd1a_pair_players
+!include style.iuml
+mainframe **sd** SD-1a Pair players and assign colours
+participant "svc : GameService" as S
+participant "rec : GameRecord" as R
+participant "p1Profile : PlayerProfile" as P
+
+S -> R : find oldest waiting record\n[same boardSize, row locked]
+S -> R : blackLastSeen
+alt host seen in the last 30 s
+  S -> P : get or create PlayerProfile(name)
+  S -> R : whitePlayer = p1Profile, whiteToken = newToken()
+  opt random() < 0.5
+    S -> R : swap black and white seats
+    note right of R : colours drawn at random
+  end
+  S -> R : status = in_progress,\nlastEvent = "Black moves first"
+  create participant "g : Game" as G
+  S -> G : buildGame(rec)
+  create participant "b : Board" as B
+  G -> B : <<create>> Board(boardSize)
+  G -> B : initialize()
+  note right of B : 4 centre pieces:\nd4, e5 White - e4, d5 Black
+  G -> G : start()
+  note right of G : currentPlayerIndex = 0 (Black)
+else host gone > 30 s
+  note right of S : Ext 2a
+  S -> R : status = cancelled
+  note right of S : try the next waiting record;\nif none, p1 waits (SD-1, Ext 1a)
+end
+@enduml

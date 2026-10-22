@@ -1,0 +1,31 @@
+@startuml sd2a_turn_or_end
+!include style.iuml
+mainframe **sd** SD-2a Pass turn, skip turn or end game (UC-03, UC-04)
+participant "svc : GameService" as S
+participant "g : Game" as GM
+participant "b : Board" as B
+participant "r : TurnResult" as T
+
+GM -> GM : advanceTurn(result)
+GM -> B : hasValidMove(opponent)
+alt opponent has a valid move
+  GM -> GM : currentPlayerIndex = opponent
+  note right of GM : Step 5: turn passes
+else only the mover has a valid move
+  note right of GM : UC-03 Skip Turn (Ext 5a)
+  GM -> B : hasValidMove(mover)
+  GM -> T : skipped = opponent
+  note right of T : "White has no legal move -\nBlack plays again"
+else neither player has a valid move
+  note right of GM : UC-04 End Game (Ext 5b)
+  GM -> GM : status = FINISHED
+  GM -> T : gameOver = true
+  GM -> B : count(BLACK)
+  GM -> B : count(WHITE)
+  GM -> GM : updateScores()
+  GM -> GM : getWinner()
+  GM --> S : TurnResult (gameOver)
+  S -> S : finish(rec, g, no_moves)
+  note right of S : result = black, white or draw;\nPlayerProfile wins / losses / draws\nupdated; both players see the result
+end
+@enduml

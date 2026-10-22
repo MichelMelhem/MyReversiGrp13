@@ -1,0 +1,68 @@
+@startuml od1_computer_game_start
+!include style.iuml
+title OD-1  Start of a game against the computer (8 x 8, after Game.start())
+object "game1 : Game" as game1 {
+  currentPlayerIndex = 0
+  status = IN_PROGRESS
+}
+object "board1 : Board" as board1 {
+  size = 8
+}
+object "rose : HumanPlayer" as rose {
+  name = "Rose"
+  color = BLACK
+  score = 2
+  isComputer = false
+}
+object "cpu : ComputerPlayer" as cpu {
+  name = "Computer"
+  color = WHITE
+  score = 2
+  isComputer = true
+  difficultyLevel = "normal"
+}
+object "d4 : Cell" as d4 {
+  row = 3
+  col = 3
+}
+object "e4 : Cell" as e4 {
+  row = 3
+  col = 4
+}
+object "d5 : Cell" as d5 {
+  row = 4
+  col = 3
+}
+object "e5 : Cell" as e5 {
+  row = 4
+  col = 4
+}
+object "p1 : Piece" as p1 {
+  color = WHITE
+}
+object "p2 : Piece" as p2 {
+  color = BLACK
+}
+object "p3 : Piece" as p3 {
+  color = BLACK
+}
+object "p4 : Piece" as p4 {
+  color = WHITE
+}
+game1 --> board1 : board
+game1 --> rose : players[0]
+game1 --> cpu : players[1]
+board1 --> d4 : cells
+board1 --> e4 : cells
+board1 --> d5 : cells
+board1 --> e5 : cells
+d4 --> p1 : piece
+e4 --> p2 : piece
+d5 --> p3 : piece
+e5 --> p4 : piece
+note bottom of board1
+  The other 60 cells exist but are empty
+  (piece = null). Rows/columns are 0-based:
+  d4 = row 3, col 3. Black (Rose) moves first.
+end note
+@enduml

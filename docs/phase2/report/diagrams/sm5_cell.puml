@@ -1,0 +1,20 @@
+@startuml sm5_cell
+!include style.iuml
+title SM-5  Cell - state diagram
+hide empty description
+[*] --> Empty : Board.initialize()\n[not a centre square]
+[*] --> Occupied : Board.initialize()\n[centre square]\n/ setPiece(starting piece)
+Empty --> Occupied : placePiece(row, col, color)\n[legal move]\n/ setPiece(new Piece(color))
+state Occupied {
+  [*] --> Black : [piece.color = BLACK]
+  [*] --> White : [piece.color = WHITE]
+  Black --> White : flip()\n[outflanked by White]
+  White --> Black : flip()\n[outflanked by Black]
+}
+Empty : isEmpty() = true
+Occupied : isEmpty() = false
+note right of Occupied
+  A piece is never removed once
+  placed: it can only change colour.
+end note
+@enduml

@@ -1,0 +1,45 @@
+@startuml sm6_client_navigation
+!include style.iuml
+title SM-6  Client navigation of the target UI (matches the mock-ups)
+hide empty description
+state Authentication #F4F4F4 {
+  [*] --> SignIn
+  SignIn --> IncorrectLogin : submit\n[id and password do not exist]
+  IncorrectLogin --> SignIn : retry
+  SignIn --> SignUp : register\n[player has no account]
+  SignUp --> SignIn : accountCreated
+}
+[*] --> Authentication
+Authentication --> Lobby : submit\n[id and password exist]
+state RandomPlayer {
+  [*] --> Searching
+  Searching --> OpponentFound : opponentJoins\n[same board size]
+  Searching --> NotFound : timeout\n[no opponent found]
+}
+Lobby --> RandomPlayer : chooseRandomPlayer
+NotFound --> Lobby : back
+OpponentFound --> Playing : startGame
+state InvitePlayer #F4F4F4 {
+  [*] --> UsernameEntered
+  UsernameEntered --> InvalidUsername : check\n[username does not exist]
+  UsernameEntered --> InvitationSent : check\n[username exists and player is online]
+  UsernameEntered --> PlayerOffline : check\n[username exists and player is offline]
+  InvitationSent --> InviteAccepted : accept
+  InvitationSent --> InviteDeclined : decline
+}
+Lobby --> InvitePlayer : chooseInvitePlayer
+InvalidUsername --> Lobby : back
+PlayerOffline --> Lobby : back
+InviteDeclined --> Lobby : back
+InviteAccepted --> Playing : startGame
+Lobby --> Playing : chooseComputer\n/ createComputerGame()
+Playing : see SM-2 and SM-4
+Playing --> GameOver : gameFinished\n[neither player has a valid move]
+GameOver --> Lobby : backToLobby\n/ leaderboard updated
+Lobby --> [*] : exit
+legend bottom
+  Grey states (sign-in and invite by username) are planned extensions
+  shown in the mock-ups; the current version identifies a player by the
+  name typed in the lobby (see vulnerability V9).
+endlegend
+@enduml
