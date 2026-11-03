@@ -12,5 +12,6 @@ urlpatterns = [
     path('games/<int:game_id>/moves/', views.make_move, name='make_move'),
     path('games/<int:game_id>/poll/', views.poll_game, name='poll_game'),
     path('games/<int:game_id>/replay/', views.game_replay, name='game_replay'),
+    path('games/<int:game_id>/leave/', views.leave_game, name='leave_game'),
 ]
 

@@ -283,3 +283,55 @@ class GameService:
             "initial_board": GameService.starting_board(game.board_size),
             "moves": move_list
         }
+
+    @staticmethod
+    def leave_game(game_id, token):
+    
+        if not token:
+            raise PermissionError("Token is required to leave the game.")
+
+        with transaction.atomic():
+            try:
+                game = Game.objects.get(id=game_id)
+            except Game.DoesNotExist:
+                raise LookupError("Game not found.")
+
+            if game.black_token and secrets.compare_digest(token, game.black_token):
+                leaving_colour = 'black'
+            elif game.white_token and secrets.compare_digest(token, game.white_token):
+                leaving_colour = 'white'
+            else:
+                raise PermissionError("Invalid token. You are not authorized to leave this game.")
+            
+            if game.status == 'finished':   
+                raise ValueError("Game is already finished. Cannot leave a finished game.")
+
+            if game.status == 'waiting':
+                game.delete()
+                return {
+                    "status": "cancelled",
+                    "message": "Game has been cancelled."
+                }
+
+            winner = 'white' if leaving_colour == 'black' else 'black'
+
+            game.status = 'finished'    
+            game.result = winner
+            game.save()
+
+            winner_profile = (
+                game.white_profile if winner == 'white' else game.black_profile
+            )
+
+            loser_profile = (
+                game.white_profile if leaving_colour == 'white' else game.black_profile
+            )
+
+            if winner_profile:
+                winner_profile.wins += 1
+                winner_profile.save(update_fields=['wins'])
+            if loser_profile:
+                loser_profile.losses += 1
+                loser_profile.save(update_fields=['losses'])
+
+            return GameService.serialize_game(game)

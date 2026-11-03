@@ -173,3 +173,33 @@ def game_replay(request, game_id):
         )
     
     return Response(replay, status=200)
+
+@api_view(['POST'])
+def leave_game(request, game_id):
+    token = request.headers.get('X-Player-Token')
+
+    try:
+        result = GameService.leave_game(game_id, token)
+    except LookupError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except PermissionError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    except ValueError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if result is None:
+        return Response(
+            {"error": "Game not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    return Response(result, status=200)
