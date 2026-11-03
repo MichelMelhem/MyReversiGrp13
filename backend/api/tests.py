@@ -338,4 +338,62 @@ class GameAPITests(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
+    
+    def test_available_games_lobby(self):
+        # Create a new game
+        create_response = self.client.post(
+            "/api/games/",
+            data={},
+            format="json"
+        )
 
+        game_id = create_response.data["id"]
+
+        # Join as Alice
+        self.client.post(
+            f"/api/games/{game_id}/join/",
+            data={"name": "Alice"},
+            format="json"
+        )
+
+        # Check the available games
+        lobby_response = self.client.get(
+            "/api/games/available/"
+        )
+
+        self.assertEqual(lobby_response.status_code, 200)
+
+        # The API returns a list directly
+        game_ids = [
+            game["id"]
+            for game in lobby_response.data
+        ]
+
+        # Alice's game should appear
+        self.assertIn(game_id, game_ids)
+
+        # Join as Bob
+        self.client.post(
+            f"/api/games/{game_id}/join/",
+            data={"name": "Bob"},
+            format="json"
+        )
+
+        # Check the lobby again
+        lobby_response = self.client.get(
+            "/api/games/available/"
+        )
+
+        self.assertEqual(lobby_response.status_code, 200)
+
+        game_ids = [
+            game["id"]
+            for game in lobby_response.data
+        ]
+
+        # The game should no longer be available
+        self.assertNotIn(game_id, game_ids)
+
+
+    
+    

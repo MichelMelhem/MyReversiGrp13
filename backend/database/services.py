@@ -203,5 +203,27 @@ class GameService:
         #REPLACE SECTION WITH CALLS TO GAME LOGIC FUNCTIONS
         raise NotImplementedError("Move validation and execution logic is not implemented yet.")
 
-    
-    
+    @staticmethod
+    def get_available_games():
+        games = Game.objects.filter(
+            mode='online', 
+            status='waiting'
+        ).exclude(
+            black_token=''
+        ).filter( 
+            white_token=''   
+        ).order_by('-created_at')
+
+        available_games = []
+
+        for game in games:
+            available_games.append({
+                "id": game.id,
+                "board_size": game.board_size,
+                "status": game.status,
+                "host": game.black_player,
+                "created_at": game.created_at.isoformat()
+            })
+
+            
+        return available_games
