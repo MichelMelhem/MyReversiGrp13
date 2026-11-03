@@ -54,10 +54,10 @@ class GameService:
 
         if token:
             if game.black_token and secrets.compare_digest(token, game.black_token):
-                if game.status == ('in_progress', 'finished'):
+                if game.status in ('in_progress', 'finished'):
                     result['your_colour'] = 'black'
             elif game.white_token and secrets.compare_digest(token, game.white_token):
-                if game.status == ('in_progress', 'finished'):
+                if game.status in ('in_progress', 'finished'):
                     result['your_colour'] = 'white'
             else:
                 raise PermissionError("Invalid token. You are not authorized to view this game.")
@@ -175,7 +175,10 @@ class GameService:
         try:
             game = Game.objects.get(id=game_id)
         except Game.DoesNotExist:
-            return LookupError("Game not found.")
+            raise LookupError("Game not found.")
+
+        if not token:
+            raise PermissionError("Token is required to make a move.")
 
         if game.black_token and secrets.compare_digest(token, game.black_token):
             player_colour = 'black'
