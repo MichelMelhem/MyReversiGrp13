@@ -27,8 +27,8 @@ class Game(models.Model):
     status = models.CharField(max_length=20, default='waiting')
 
     # for api use
-    black_player = models.CharField(max_length=100, null=True, blank=True)
-    white_player = models.CharField(max_length=100, null=True, blank=True)
+    black_player = models.CharField(max_length=30, null=True, blank=True)
+    white_player = models.CharField(max_length=30, null=True, blank=True)
     # ----
 
     black_profile = models.ForeignKey(PlayerProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='black_games')
@@ -37,6 +37,10 @@ class Game(models.Model):
     #seceret player token
     black_token = models.CharField(max_length=64, blank=True, default='')
     white_token = models.CharField(max_length=64, blank=True, default='')
+
+    black_last_seen = models.DateTimeField(null=True, blank=True)
+    white_last_seen = models.DateTimeField(null=True, blank=True)
+    
     result = models.CharField(max_length=20, blank=True, default='')
 
     created_at = models.DateTimeField(auto_now_add=True)
