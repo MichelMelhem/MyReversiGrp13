@@ -5,13 +5,14 @@ Keep game rules in ``game/``; models here only store and load state.
 from django.db import models  # noqa: F401
 
 class PlayerProfile(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=30)
     wins = models.IntegerField(default=0)
     losses = models.IntegerField(default=0)
     draws = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
+
 class Game(models.Model):
 
     mode = models.CharField(max_length=20, 

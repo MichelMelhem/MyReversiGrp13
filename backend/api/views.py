@@ -4,11 +4,6 @@ from rest_framework import status
 
 from database.services import GameService
 
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-
-
-
 @api_view(['GET'])
 def health(request):
     return Response({"status": "ok"})
@@ -37,7 +32,16 @@ def create_game(request):
 
 @api_view(['GET'])
 def get_game(request, game_id):
-    game = GameService.get_game(game_id)
+
+    token = request.headers.get('X-Player-Token')
+
+    try:
+        game = GameService.get_game(game_id, token)
+    except PermissionError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_403_FORBIDDEN
+        )
 
     if game is None:
         return Response(
@@ -45,5 +49,90 @@ def get_game(request, game_id):
             status=status.HTTP_404_NOT_FOUND
         )
 
-    return Response(game)
-    return Response({'status': 'ok'})
+    return Response(game, status=200)
+    
+@api_view(['POST'])
+def join_game(request, game_id):
+    name = request.data.get('name')
+    token = request.headers.get('X-Player-Token')
+
+    try:
+        result = GameService.join_online_game(game_id, name, token)
+    except PermissionError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    except ValueError as e:
+        return Response(
+            {"error": str(e)}
+        )
+
+    if result is None:
+        return Response(
+            {"error": "Game not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    return Response(result, status=200)
+
+@api_view(['POST'])
+def make_move(request, game_id):
+    token = request.headers.get('X-Player-Token')
+    row = request.data.get('row')
+    col = request.data.get('col')
+
+    try:
+        result = GameService.make_move(game_id, token, row, col)
+    except LookupError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except PermissionError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    except ValueError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except NotImplementedError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_501_NOT_IMPLEMENTED
+        )
+
+    if result is None:
+        return Response(
+            {"error": "Game not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    return Response(result, status=200)
+
+@api_view(['GET'])
+def poll_game(request, game_id):
+    token = request.headers.get('X-Player-Token')
+
+    try:
+        result = GameService.poll_game(game_id, token)
+    except LookupError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_404_NOT_FOUND        )
+    except PermissionError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    if result is None:
+        return Response(
+            {"error": "Game not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    return Response(result, status=200)
