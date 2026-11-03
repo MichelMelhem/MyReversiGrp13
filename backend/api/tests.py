@@ -1,6 +1,7 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
 from django.urls import reverse
+from database.models import Game, MoveRecord
 
 
 class HealthEndpointTests(TestCase):
@@ -393,6 +394,110 @@ class GameAPITests(TestCase):
 
         # The game should no longer be available
         self.assertNotIn(game_id, game_ids)
+
+    
+    # TEST 15: History initially has no finished games
+
+    def test_history_empty(self):
+        response = self.client.get(
+            "/api/games/history/"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, [])
+
+    # TEST 16: Finished games appear in history
+
+    def test_finished_game_appears_in_history(self):
+        create_response = self.client.post(
+            "/api/games/",
+            data={},
+            format="json"
+        )
+
+        game_id = create_response.data["id"]
+
+        # Simulate a finished game in the test database
+        game = Game.objects.get(id=game_id)
+        game.status = "finished"
+        game.result = "black"
+        game.save()
+
+        response = self.client.get(
+            "/api/games/history/"
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        ids = [item["id"] for item in response.data]
+
+        self.assertIn(game_id, ids)
+
+    # TEST 17: Replay contains recorded moves
+
+    def test_game_replay_returns_moves(self):
+        create_response = self.client.post(
+            "/api/games/",
+            data={},
+            format="json"
+        )
+
+        game_id = create_response.data["id"]
+
+        game = Game.objects.get(id=game_id)
+        game.status = "finished"
+        game.result = "black"
+        game.save()
+
+        # Simulate moves stored by the future game engine
+        MoveRecord.objects.create(
+            game=game,
+            number=1,
+            colour="black",
+            row=2,
+            col=3
+        )
+
+        MoveRecord.objects.create(
+            game=game,
+            number=2,
+            colour="white",
+            row=2,
+            col=2
+        )
+
+        response = self.client.get(
+            f"/api/games/{game_id}/replay/"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["moves"]), 2)
+
+        self.assertEqual(
+            response.data["moves"][0]["number"], 1
+        )
+
+        self.assertEqual(
+            response.data["moves"][0]["colour"], "black"
+        )
+
+    # TEST 18: Unfinished games cannot be replayed
+
+    def test_unfinished_game_replay_rejected(self):
+        create_response = self.client.post(
+            "/api/games/",
+            data={},
+            format="json"
+        )
+
+        game_id = create_response.data["id"]
+
+        response = self.client.get(
+            f"/api/games/{game_id}/replay/"
+        )
+
+        self.assertEqual(response.status_code, 400)
+
 
 
     

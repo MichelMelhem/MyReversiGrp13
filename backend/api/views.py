@@ -150,3 +150,26 @@ def available_games(request):
         )
 
     return Response(result, status=200)
+
+@api_view(['GET'])
+def game_history(request):
+    history = GameService.get_game_history()
+
+    return Response(history, status=200)
+
+@api_view(['GET'])
+def game_replay(request, game_id):
+    try:
+        replay = GameService.get_game_replay(game_id)
+    except LookupError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except ValueError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    return Response(replay, status=200)

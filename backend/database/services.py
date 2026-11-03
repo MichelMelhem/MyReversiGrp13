@@ -1,6 +1,6 @@
 import secrets
 from django.db import transaction
-from database.models import Game, PlayerProfile
+from database.models import Game, PlayerProfile, MoveRecord
 
 class GameService:
     @staticmethod
@@ -227,3 +227,59 @@ class GameService:
 
             
         return available_games
+
+    @staticmethod
+    def get_game_history():
+        games = Game.objects.filter(
+            status='finished'
+        ).order_by('-updated_at')
+
+        game_history = []
+
+        for game in games:
+            game_history.append({
+                "id": game.id,
+                "board_size": game.board_size,
+                "mode": game.mode,
+                "players": {
+                    "black": game.black_player,
+                    "white": game.white_player
+                },
+                "result": game.result,
+                "created_at": game.created_at.isoformat()
+            })
+
+        return game_history
+
+    @staticmethod
+    def get_game_replay(game_id):
+        try:
+            game = Game.objects.get(id=game_id)
+        except Game.DoesNotExist:
+            raise LookupError("Game not found.")
+
+        if game.status != 'finished':
+            raise ValueError("Game is not finished. Replay is only available for completed games.")
+
+        moves = MoveRecord.objects.filter(game=game).order_by('number')
+
+        move_list = []
+        for move in moves:
+            move_list.append({
+                "number": move.number,
+                "colour": move.colour,
+                "row": move.row,
+                "col": move.col
+            })
+
+        return {
+            "id": game.id,
+            "board_size": game.board_size,
+            "players": {
+                "black": game.black_player,
+                "white": game.white_player
+            },
+            "result": game.result,
+            "initial_board": GameService.starting_board(game.board_size),
+            "moves": move_list
+        }
