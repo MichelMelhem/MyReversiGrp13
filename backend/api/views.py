@@ -203,3 +203,15 @@ def leave_game(request, game_id):
         )
 
     return Response(result, status=200)
+
+@api_view(['GET'])
+def leaderboard(request):
+    try:
+        result = GameService.get_leaderboard()
+    except PermissionError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    return Response(result, status=200)

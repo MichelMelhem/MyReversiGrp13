@@ -1,7 +1,9 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
 from django.urls import reverse
-from database.models import Game, MoveRecord
+from database.models import Game, MoveRecord, PlayerProfile
+from datetime import timedelta
+from django.utils import timezone
 
 
 class HealthEndpointTests(TestCase):
@@ -600,6 +602,215 @@ class GameAPITests(TestCase):
         game.white_profile.refresh_from_db()
 
         self.assertEqual(game.white_profile.wins, 1)
+
+    
+    def test_poll_updates_player_last_seen(self):
+        response = self.client.post("/api/games/")
+        game_id = response.data["id"]
+
+        self.client.post(
+            f"/api/games/{game_id}/join/",
+            {"name": "Alice"},
+            format="json"
+        )
+        self.client.post(
+            f"/api/games/{game_id}/join/",
+            {"name": "Bob"},
+            format="json"
+        )
+
+        game = Game.objects.get(id=game_id)
+        original_time = game.black_last_seen
+
+        response = self.client.get(
+            f"/api/games/{game_id}/poll/",
+            HTTP_X_PLAYER_TOKEN=game.black_token
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        game.refresh_from_db()
+        self.assertGreaterEqual(
+            game.black_last_seen,
+            original_time
+        )
+        self.assertEqual(game.status, "in_progress")
+
+    def test_disconnected_player_forfeits_after_30_seconds(self):
+        response = self.client.post("/api/games/")
+        game_id = response.data["id"]
+
+        self.client.post(
+            f"/api/games/{game_id}/join/",
+            {"name": "Alice"},
+            format="json"
+        )
+        self.client.post(
+            f"/api/games/{game_id}/join/",
+            {"name": "Bob"},
+            format="json"
+        )
+
+        game = Game.objects.get(id=game_id)
+
+        # Simulate White being disconnected for 31 seconds.
+        Game.objects.filter(id=game_id).update(
+            black_last_seen=timezone.now(),
+            white_last_seen=(
+                timezone.now() - timedelta(seconds=31)
+            )
+        )
+
+        response = self.client.get(
+            f"/api/games/{game_id}/poll/",
+            HTTP_X_PLAYER_TOKEN=game.black_token
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        game.refresh_from_db()
+        self.assertEqual(game.status, "finished")
+        self.assertEqual(game.result, "black")
+
+        game.black_profile.refresh_from_db()
+        game.white_profile.refresh_from_db()
+
+        self.assertEqual(game.black_profile.wins, 1)
+        self.assertEqual(game.white_profile.losses, 1)
+
+    def test_reconnecting_before_timeout_keeps_game_active(self):
+        response = self.client.post("/api/games/")
+        game_id = response.data["id"]
+
+        self.client.post(
+            f"/api/games/{game_id}/join/",
+            {"name": "Alice"},
+            format="json"
+        )
+        self.client.post(
+            f"/api/games/{game_id}/join/",
+            {"name": "Bob"},
+            format="json"
+        )
+
+        game = Game.objects.get(id=game_id)
+
+        # White was last seen 20 seconds ago.
+        Game.objects.filter(id=game_id).update(
+            black_last_seen=timezone.now(),
+            white_last_seen=(
+                timezone.now() - timedelta(seconds=20)
+            )
+        )
+
+        response = self.client.get(
+            f"/api/games/{game_id}/poll/",
+            HTTP_X_PLAYER_TOKEN=game.white_token
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        game.refresh_from_db()
+        self.assertEqual(game.status, "in_progress")
+        self.assertEqual(game.result, "")
+
+    def test_timeout_is_not_counted_twice(self):
+        response = self.client.post("/api/games/")
+        game_id = response.data["id"]
+
+        self.client.post(
+            f"/api/games/{game_id}/join/",
+            {"name": "Alice"},
+            format="json"
+        )
+        self.client.post(
+            f"/api/games/{game_id}/join/",
+            {"name": "Bob"},
+            format="json"
+        )
+
+        game = Game.objects.get(id=game_id)
+
+        Game.objects.filter(id=game_id).update(
+            black_last_seen=timezone.now(),
+            white_last_seen=(
+                timezone.now() - timedelta(seconds=31)
+            )
+        )
+
+        for _ in range(2):
+            response = self.client.get(
+                f"/api/games/{game_id}/poll/",
+                HTTP_X_PLAYER_TOKEN=game.black_token
+            )
+            self.assertEqual(response.status_code, 200)
+
+        game.black_profile.refresh_from_db()
+        game.white_profile.refresh_from_db()
+
+        self.assertEqual(game.black_profile.wins, 1)
+        self.assertEqual(game.white_profile.losses, 1)
+
+    
+    def test_leaderboard_returns_empty_list(self):
+        response = self.client.get("/api/leaderboard/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, [])
+
+    def test_leaderboard_ranks_players_by_wins(self):
+        PlayerProfile.objects.create(
+            name="Alice",
+            wins=5,
+            losses=1,
+            draws=0
+        )
+
+        PlayerProfile.objects.create(
+            name="Bob",
+            wins=2,
+            losses=3,
+            draws=0
+        )
+
+        PlayerProfile.objects.create(
+            name="Charlie",
+            wins=8,
+            losses=2,
+            draws=1
+        )
+
+        response = self.client.get("/api/leaderboard/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 3)
+
+        self.assertEqual(response.data[0]["name"], "Charlie")
+        self.assertEqual(response.data[0]["rank"], 1)
+
+        self.assertEqual(response.data[1]["name"], "Alice")
+        self.assertEqual(response.data[1]["rank"], 2)
+
+        self.assertEqual(response.data[2]["name"], "Bob")
+        self.assertEqual(response.data[2]["rank"], 3)
+
+    def test_leaderboard_games_played(self):
+        PlayerProfile.objects.create(
+            name="Alice",
+            wins=3,
+            losses=2,
+            draws=1
+        )
+
+        response = self.client.get("/api/leaderboard/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.data[0]["games_played"],
+            6
+        )
+
+
 
 
 

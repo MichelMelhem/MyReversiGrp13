@@ -1,6 +1,8 @@
 import secrets
 from django.db import transaction
 from database.models import Game, PlayerProfile, MoveRecord
+from datetime import timedelta
+from django.utils import timezone
 
 class GameService:
     @staticmethod
@@ -64,17 +66,126 @@ class GameService:
 
         return result
 
+    
+    RECONNECT_WINDOW = timedelta(seconds=30)
+
     @staticmethod
     def poll_game(game_id, token=None):
         if not token:
-            raise PermissionError("Token is required to poll the game.")
+            raise PermissionError(
+                "Token is required to poll the game."
+            )
 
-        game = GameService.get_game(game_id, token)
+        with transaction.atomic():
+            try:
+                game = Game.objects.select_for_update().get(
+                    id=game_id
+                )
+            except Game.DoesNotExist:
+                return None
 
-        if game is None:
-            return None
+            # Identify the player using their secret token.
+            if game.black_token and secrets.compare_digest(
+                token, game.black_token
+            ):
+                colour = "black"
+                opponent_colour = "white"
 
-        return game
+            elif game.white_token and secrets.compare_digest(
+                token, game.white_token
+            ):
+                colour = "white"
+                opponent_colour = "black"
+
+            else:
+                raise PermissionError("Invalid player token.")
+
+            if game.status == "in_progress":
+                now = timezone.now()
+
+                my_field = f"{colour}_last_seen"
+                opponent_field = f"{opponent_colour}_last_seen"
+
+                my_last_seen = getattr(game, my_field)
+                opponent_last_seen = getattr(
+                    game, opponent_field
+                )
+
+                my_expired = (
+                    my_last_seen is not None
+                    and now - my_last_seen
+                    > GameService.RECONNECT_WINDOW
+                )
+
+                opponent_expired = (
+                    opponent_last_seen is not None
+                    and now - opponent_last_seen
+                    > GameService.RECONNECT_WINDOW
+                )
+
+                # Exactly one player has timed out.
+                # That player forfeits.
+                if my_expired != opponent_expired:
+                    loser = (
+                        colour if my_expired
+                        else opponent_colour
+                    )
+                    winner = (
+                        "white" if loser == "black"
+                        else "black"
+                    )
+
+                    game.status = "finished"
+                    game.result = winner
+                    game.save(
+                        update_fields=[
+                            "status", "result", "updated_at"
+                        ]
+                    )
+
+                    winner_profile = (
+                        game.black_profile
+                        if winner == "black"
+                        else game.white_profile
+                    )
+
+                    loser_profile = (
+                        game.black_profile
+                        if loser == "black"
+                        else game.white_profile
+                    )
+
+                    if winner_profile:
+                        winner_profile.wins += 1
+                        winner_profile.save(
+                            update_fields=["wins"]
+                        )
+
+                    if loser_profile:
+                        loser_profile.losses += 1
+                        loser_profile.save(
+                            update_fields=["losses"]
+                        )
+
+                else:
+                    # Both are active, or both were inactive.
+                    # Update the reconnecting player's timestamp.
+                    setattr(game, my_field, now)
+                    game.save(
+                        update_fields=[
+                            my_field, "updated_at"
+                        ]
+                    )
+
+            result = GameService.serialize_game(game)
+            result["your_colour"] = (
+                colour
+                if game.status in ("in_progress", "finished")
+                else None
+            )
+
+            return result
+
         
 
     @staticmethod
@@ -156,6 +267,11 @@ class GameService:
 
                 game.status = 'in_progress'
                 game.current_turn = 'black'
+
+                now = timezone.now()
+                game.black_last_seen = now
+                game.white_last_seen = now
+
                 game.save()
 
                 your_colour = (
@@ -335,3 +451,28 @@ class GameService:
                 loser_profile.save(update_fields=['losses'])
 
             return GameService.serialize_game(game)
+
+    @staticmethod
+    def get_leaderboard():
+        players = PlayerProfile.objects.all().order_by(
+            '-wins',
+            'losses', 
+            '-draws',
+            'name',
+            'id'
+            )
+
+        leaderboard = []
+        for rank, player in enumerate(players, start=1):
+            leaderboard.append({
+                "rank": rank,
+                "name": player.name,
+                "wins": player.wins,
+                "losses": player.losses,
+                "draws": player.draws,
+                'games_played': (
+                    player.wins + player.losses + player.draws
+                )
+            })
+
+        return leaderboard
