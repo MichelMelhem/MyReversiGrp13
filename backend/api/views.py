@@ -65,7 +65,8 @@ def join_game(request, game_id):
         )
     except ValueError as e:
         return Response(
-            {"error": str(e)}
+            {"error": str(e)},
+            status=status.HTTP_400_BAD_REQUEST
         )
 
     if result is None:
@@ -136,3 +137,39 @@ def poll_game(request, game_id):
         )
 
     return Response(result, status=200)
+
+@api_view(['GET'])
+def available_games(request):
+
+    try:
+        result = GameService.get_available_games()
+    except PermissionError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    return Response(result, status=200)
+
+@api_view(['GET'])
+def game_history(request):
+    history = GameService.get_game_history()
+
+    return Response(history, status=200)
+
+@api_view(['GET'])
+def game_replay(request, game_id):
+    try:
+        replay = GameService.get_game_replay(game_id)
+    except LookupError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except ValueError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    return Response(replay, status=200)

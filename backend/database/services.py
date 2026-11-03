@@ -1,6 +1,6 @@
 import secrets
 from django.db import transaction
-from database.models import Game, PlayerProfile
+from database.models import Game, PlayerProfile, MoveRecord
 
 class GameService:
     @staticmethod
@@ -54,10 +54,10 @@ class GameService:
 
         if token:
             if game.black_token and secrets.compare_digest(token, game.black_token):
-                if game.status == ('in_progress', 'finished'):
+                if game.status in ('in_progress', 'finished'):
                     result['your_colour'] = 'black'
             elif game.white_token and secrets.compare_digest(token, game.white_token):
-                if game.status == ('in_progress', 'finished'):
+                if game.status in ('in_progress', 'finished'):
                     result['your_colour'] = 'white'
             else:
                 raise PermissionError("Invalid token. You are not authorized to view this game.")
@@ -175,7 +175,10 @@ class GameService:
         try:
             game = Game.objects.get(id=game_id)
         except Game.DoesNotExist:
-            return LookupError("Game not found.")
+            raise LookupError("Game not found.")
+
+        if not token:
+            raise PermissionError("Token is required to make a move.")
 
         if game.black_token and secrets.compare_digest(token, game.black_token):
             player_colour = 'black'
@@ -200,5 +203,83 @@ class GameService:
         #REPLACE SECTION WITH CALLS TO GAME LOGIC FUNCTIONS
         raise NotImplementedError("Move validation and execution logic is not implemented yet.")
 
-    
-    
+    @staticmethod
+    def get_available_games():
+        games = Game.objects.filter(
+            mode='online', 
+            status='waiting'
+        ).exclude(
+            black_token=''
+        ).filter( 
+            white_token=''   
+        ).order_by('-created_at')
+
+        available_games = []
+
+        for game in games:
+            available_games.append({
+                "id": game.id,
+                "board_size": game.board_size,
+                "status": game.status,
+                "host": game.black_player,
+                "created_at": game.created_at.isoformat()
+            })
+
+            
+        return available_games
+
+    @staticmethod
+    def get_game_history():
+        games = Game.objects.filter(
+            status='finished'
+        ).order_by('-updated_at')
+
+        game_history = []
+
+        for game in games:
+            game_history.append({
+                "id": game.id,
+                "board_size": game.board_size,
+                "mode": game.mode,
+                "players": {
+                    "black": game.black_player,
+                    "white": game.white_player
+                },
+                "result": game.result,
+                "created_at": game.created_at.isoformat()
+            })
+
+        return game_history
+
+    @staticmethod
+    def get_game_replay(game_id):
+        try:
+            game = Game.objects.get(id=game_id)
+        except Game.DoesNotExist:
+            raise LookupError("Game not found.")
+
+        if game.status != 'finished':
+            raise ValueError("Game is not finished. Replay is only available for completed games.")
+
+        moves = MoveRecord.objects.filter(game=game).order_by('number')
+
+        move_list = []
+        for move in moves:
+            move_list.append({
+                "number": move.number,
+                "colour": move.colour,
+                "row": move.row,
+                "col": move.col
+            })
+
+        return {
+            "id": game.id,
+            "board_size": game.board_size,
+            "players": {
+                "black": game.black_player,
+                "white": game.white_player
+            },
+            "result": game.result,
+            "initial_board": GameService.starting_board(game.board_size),
+            "moves": move_list
+        }
