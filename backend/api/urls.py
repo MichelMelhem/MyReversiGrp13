@@ -7,3 +7,4 @@ urlpatterns = [
     path('games/', views.create_game, name='create_game'),
     path('games/<int:game_id>/', views.get_game, name='get_game'),
 ]
+

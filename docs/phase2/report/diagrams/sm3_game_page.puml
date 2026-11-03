@@ -1,0 +1,16 @@
+@startuml sm3_game_page
+!include style.iuml
+title SM-3  GamePage (browser client) - state diagram
+hide empty description
+[*] --> Lobby
+Lobby --> WaitingForOpponent : startGame()\n[mode = online and status = WAITING]
+Lobby --> Playing : startGame()\n[status = IN_PROGRESS]\n(paired at once, or computer game)
+WaitingForOpponent --> WaitingForOpponent : poll() every 1.5 s\n[status = WAITING]
+WaitingForOpponent --> Playing : poll()\n[status = IN_PROGRESS]
+WaitingForOpponent --> Lobby : leave()\n[player cancels]
+Playing --> ShowingResult : poll() or play()\n[status = FINISHED]\n/ showResult()
+Playing --> Lobby : leave()\n[player confirms quit]\n/ game forfeited
+ShowingResult --> Lobby : backToLobby()\n[player clicks "Lobby"]
+ShowingResult --> [*] : closePage()
+Lobby --> [*] : closePage()
+@enduml

@@ -1,0 +1,27 @@
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam ArrowColor #333333
+skinparam roundcorner 8
+skinparam sequence {
+  LifeLineBorderColor #555555
+  ParticipantBorderColor #333333
+  ParticipantBackgroundColor #FFFFFF
+  ActorBorderColor #333333
+  ActorBackgroundColor #FFFFFF
+  GroupBorderColor #555555
+  GroupHeaderFontStyle bold
+}
+skinparam object {
+  BorderColor #333333
+  BackgroundColor #FFFFFF
+}
+skinparam state {
+  BorderColor #333333
+  BackgroundColor #FFFFFF
+}
+skinparam note {
+  BorderColor #999999
+  BackgroundColor #FFFBE6
+}
+hide circle

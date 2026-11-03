@@ -1,0 +1,50 @@
+@startuml sd1_join_game
+!include style.iuml
+mainframe **sd** SD-1 Join Game (UC-01)
+autonumber stop
+actor "p1 : Player" as P1
+participant "lobby : LobbyPage" as L
+participant "api : ApiClient" as A
+participant ": GameAPI" as API
+participant "svc : GameService" as S
+participant "rec : GameRecord" as R
+
+P1 -> L : startGame()
+note left of P1 : Trigger: player chooses\nonline game, size 8
+L -> A : api("/api/lobby/join/", "POST", {name, boardSize})
+A -> API : POST /api/lobby/join/
+API -> S : joinOnlineGame(name, boardSize)
+alt a player with the same board size is waiting
+  ref over S, R : SD-1a Pair players and assign colours\n(Step 2; Ext 2a)
+else no player waiting
+  note right of S : Ext 1a
+  S -> R : <<create>> status = waiting,\nblackPlayer = p1
+end
+S --> API : (rec, token, colour)
+API --> A : 201 {gameId, token, colour, state}
+A -> A : saveSeat(gameId, token, colour)
+A --> L : state
+create participant "page : GamePage" as G
+L -> G : <<create>> GamePage(gameId, token)
+loop every 1.5 s while state.status = waiting
+  G -> A : api("/api/games/{id}/", "GET")
+  A -> API : GET /api/games/{id}/
+  API -> S : pollGame(gameId, token)
+  S --> API : (rec, colour)
+  API --> A : state
+  A --> G : state
+  break p1 cancels while waiting
+    note right of P1 : Ext 1b - EXIT, no game started
+    P1 -> G : leave()
+    G -> A : api("/api/games/{id}/leave/", "POST")
+    A -> API : POST /api/games/{id}/leave/
+    API -> S : leaveGame(gameId, token)
+    S -> R : status = cancelled
+    G -> P1 : show lobby
+  end
+end
+G -> G : render(state)
+note right of G : Steps 3-5: starting board,\nmy colour, opponent name,\nBlack to move
+G -> P1 : show board
+ref over P1, G : SD-2 Make Move (UC-02) - Black moves first
+@enduml

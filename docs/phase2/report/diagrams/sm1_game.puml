@@ -1,0 +1,17 @@
+@startuml sm1_game
+!include style.iuml
+title SM-1  Game (GameStatus) - state diagram
+hide empty description
+[*] --> WAITING : joinOnlineGame()\n[no opponent waiting]\n/ GameRecord saved
+[*] --> IN_PROGRESS : joinOnlineGame()\n[opponent already waiting]\n/ colours drawn at random
+[*] --> IN_PROGRESS : createComputerGame()\n/ player is Black
+WAITING --> IN_PROGRESS : secondPlayerJoins\n[same board size]\n/ colours drawn at random
+WAITING --> CANCELLED : leaveGame()\n[still waiting]
+WAITING --> CANCELLED : pollTimeout\n[host gone > 30 s]
+IN_PROGRESS --> FINISHED : playTurn()\n[neither player has a valid move]\n/ result = more pieces or draw
+IN_PROGRESS --> FINISHED : leaveGame() or pollGame()\n[player quits or opponent gone > 30 s]\n/ forfeit(color)
+FINISHED --> [*]
+CANCELLED --> [*]
+FINISHED : entry / count pieces, set winner or draw
+FINISHED : entry / update PlayerProfile wins, losses, draws
+@enduml

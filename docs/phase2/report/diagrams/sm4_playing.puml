@@ -1,0 +1,20 @@
+@startuml sm4_playing
+!include style.iuml
+title SM-4  GamePage: Playing - sub-state diagram
+hide empty description
+state Playing {
+  [*] --> MyTurn : enterGame\n[my colour = current colour]
+  [*] --> OpponentTurn : enterGame\n[my colour <> current colour]
+  MyTurn --> SendingMove : play(row, col)\n[square is highlighted]\n/ POST /api/games/{id}/move/
+  SendingMove --> OpponentTurn : response 200\n[opponent has a valid move]\n/ render()
+  SendingMove --> MyTurn : response 200\n[only I have a valid move]\n/ render(), show "opponent skipped"
+  SendingMove --> MyTurn : response 400\n[move rejected]\n/ show error, board unchanged
+  OpponentTurn --> MyTurn : poll() every 1.5 s\n[human opponent has moved]\n/ render()
+  OpponentTurn --> MyTurn : computer-move response\n[computer opponent has moved]\n/ render()
+  OpponentTurn --> OpponentTurn : poll()\n[only the opponent has a valid move]\n/ show "I am skipped"
+  MyTurn --> [*] : poll()\n[status = FINISHED]
+  OpponentTurn --> [*] : poll()\n[status = FINISHED]
+  SendingMove --> [*] : response 200\n[status = FINISHED]
+}
+Playing --> ShowingResult : gameFinished\n[status = FINISHED]
+@enduml

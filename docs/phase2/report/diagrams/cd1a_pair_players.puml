@@ -1,0 +1,14 @@
+@startuml cd1a_pair_players
+!include style.iuml
+title CD-1a  Pair players and assign colours - communication diagram from SD-1a
+object "svc : GameService" as S
+object "rec : GameRecord" as R
+object "p1Profile : PlayerProfile" as P
+object "g : Game" as G
+object "b : Board" as B
+S --> R : 1: find oldest waiting record [same size]\n2: blackLastSeen\n3b [host gone > 30 s]: status = cancelled\n4 [host active]: whitePlayer, whiteToken = newToken()\n5 [random() < 0.5]: swap seats\n6: status = in_progress
+S --> P : 3 [host active]: get or create(name)
+S --> G : 7: buildGame(rec)
+G --> B : 7.1: <<create>> Board(size)\n7.2: initialize()
+G --> G : 7.3: start()
+@enduml

@@ -1,0 +1,169 @@
+@startuml domain_class_diagram
+!pragma layout elk
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+  ArrowColor #333333
+}
+skinparam enum {
+  BackgroundColor #F4F4F4
+}
+title MyReversi - Refined Domain Class Diagram (package game)\nPhase 2 - Group 13
+
+package "game" {
+
+  enum PieceColor <<enumeration>> {
+    BLACK
+    WHITE
+    --
+    + opponent() : PieceColor
+  }
+
+  enum GameStatus <<enumeration>> {
+    WAITING
+    IN_PROGRESS
+    FINISHED
+  }
+
+  class Game {
+    - players : Player[2] {ordered}
+    - board : Board
+    - currentPlayerIndex : int = 0
+    - status : GameStatus = WAITING
+    - forfeitedBy : PieceColor [0..1]
+    --
+    + Game(black : Player, white : Player, board : Board [0..1], size : int = 8)
+    + start() : void
+    + resume(currentColor : PieceColor, status : GameStatus) : void
+    + getCurrentPlayer() : Player
+    + getPlayer(color : PieceColor) : Player
+    + validMoves() : Position[*]
+    + playTurn(row : int, col : int, color : PieceColor [0..1]) : TurnResult
+    + checkGameOver() : boolean
+    + forfeit(color : PieceColor) : void
+    + getWinner() : Player [0..1]
+    - advanceTurn(result : TurnResult) : void
+    - updateScores() : void
+  }
+
+  class TurnResult <<value>> {
+    + color : PieceColor
+    + row : int
+    + col : int
+    + flipped : Position[*]
+    + skipped : PieceColor [0..1]
+    + gameOver : boolean = false
+  }
+
+  class Board {
+    + {static} SUPPORTED_SIZES : int[3] = {6, 8, 10}
+    - size : int {6, 8 or 10}
+    - cells : Cell[size][size]
+    --
+    + Board(size : int = 8)
+    + initialize() : void
+    + inBounds(row : int, col : int) : boolean
+    + getCell(row : int, col : int) : Cell
+    + piecesToFlip(row : int, col : int, color : PieceColor) : Cell[*]
+    + isValidMove(row : int, col : int, color : PieceColor) : boolean
+    + getValidMoves(color : PieceColor) : Position[*]
+    + hasValidMove(color : PieceColor) : boolean
+    + placePiece(row : int, col : int, color : PieceColor) : Cell[*]
+    + flipPieces(cells : Cell[*]) : void
+    + count(color : PieceColor) : int
+    + isFull() : boolean
+    + copy() : Board
+    + toList() : String[*][*]
+    + {static} fromList(grid : String[*][*]) : Board
+  }
+
+  class Cell {
+    - row : int
+    - col : int
+    - piece : Piece [0..1]
+    --
+    + Cell(row : int, col : int)
+    + setPiece(piece : Piece [0..1]) : void
+    + getPiece() : Piece [0..1]
+    + isEmpty() : boolean
+    + getColor() : PieceColor [0..1]
+    + getLabel() : String
+  }
+
+  class Piece {
+    - color : PieceColor
+    --
+    + Piece(color : PieceColor)
+    + flip() : void
+    + getColor() : PieceColor
+  }
+
+  abstract class Player {
+    # name : String
+    # color : PieceColor
+    + score : int = 0
+    + isComputer : boolean = false
+    --
+    + Player(name : String, color : PieceColor)
+    + {abstract} makeMove(board : Board) : Position [0..1]
+    + updateScore(points : int) : void
+    + getName() : String
+    + getColor() : PieceColor
+  }
+
+  class HumanPlayer {
+    - pendingMove : Position [0..1]
+    --
+    + HumanPlayer(name : String, color : PieceColor)
+    + selectSquare(row : int, col : int) : void
+    + makeMove(board : Board) : Position [0..1]
+  }
+
+  class ComputerPlayer {
+    + {static} DIFFICULTIES : String[3] = {easy, normal, hard}
+    - difficultyLevel : String
+    - rng : Random
+    + isComputer : boolean = true
+    --
+    + ComputerPlayer(color : PieceColor, difficulty : String = "normal")
+    + makeMove(board : Board) : Position [0..1]
+    - bestGreedyMove(board : Board, moves : Position[*]) : Position
+    - calculateBestMove(board : Board, moves : Position[*]) : Position
+    - minimax(board : Board, depth : int, alpha : int, beta : int, toMove : PieceColor) : int
+    - evaluate(board : Board) : int
+  }
+
+  class InvalidMoveError <<exception>>
+  class NotYourTurnError <<exception>>
+  class GameOverError <<exception>>
+}
+
+note "Position = (row : int, col : int)\nrow 0..size-1, col 0..size-1\nshown to players as e.g. D3" as N1
+
+' --- associations -----------------------------------------------------
+Game "1" o-- "2 {ordered}\n+players" Player : is played by >
+Game "1" *-- "1\n+board" Board : is played on >
+Board "1" *-- "36..100\n+cells {size x size}" Cell : is made of >
+Cell "1" *-- "0..1\n+piece" Piece : holds >
+Game "1" --> "1\n+status" GameStatus : is in >
+Game ..> TurnResult : <<create>>
+Piece --> "1\n+color" PieceColor : shows >
+Player --> "1\n+color" PieceColor : plays as >
+
+' --- generalisation ---------------------------------------------------
+Player <|-- HumanPlayer
+Player <|-- ComputerPlayer
+InvalidMoveError <|-- NotYourTurnError
+InvalidMoveError <|-- GameOverError
+
+' --- dependencies -----------------------------------------------------
+Player ..> Board : <<use>> reads
+ComputerPlayer ..> Board : <<use>> copies to search
+Board ..> InvalidMoveError : <<throw>>
+Game ..> NotYourTurnError : <<throw>>
+Game ..> GameOverError : <<throw>>
+@enduml

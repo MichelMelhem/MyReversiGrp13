@@ -1,0 +1,25 @@
+@startuml use_case_diagram
+!include style.iuml
+left to right direction
+skinparam usecase {
+  BorderColor #333333
+  BackgroundColor #FFFFFF
+}
+actor Player
+actor Opponent
+rectangle "MyReversi System" {
+  usecase "UC-01\nJoin Game" as UC01
+  usecase "UC-05\nPlay Against Computer" as UC05
+  usecase "UC-02\nMake Move" as UC02
+  usecase "UC-03\nSkip Turn" as UC03
+  usecase "UC-04\nEnd Game" as UC04
+}
+Player -- UC01
+Player -- UC05
+Player -- UC02
+UC01 -- Opponent
+UC02 -- Opponent
+UC05 ..> UC02 : <<include>>
+UC02 <.. UC03 : <<extend>>
+UC02 <.. UC04 : <<extend>>
+@enduml

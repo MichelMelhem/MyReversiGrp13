@@ -1,0 +1,26 @@
+@startuml cd2_make_move
+!include style.iuml
+allowmixing
+title CD-2  Make Move (UC-02) - communication diagram from SD-2
+actor "p : Player" as P
+object "page : GamePage" as G
+object "api : ApiClient" as A
+object ": GameAPI" as API
+object "svc : GameService" as S
+object "rec : GameRecord" as R
+object "g : Game" as GM
+object "b : Board" as B
+object "piece : Piece" as PC
+P --> G : 1: play(2, 3)
+G --> A : 1.1: api(".../move/", "POST", {row, col}, token)
+A --> API : 1.1.1: POST /api/games/{id}/move/
+API --> S : 1.1.1.1: makeMove(id, token, 2, 3)
+S --> R : 1.1.1.1.1: colorForToken(token)\n1.1.1.1.4 [legal]: recordTurn() / <<create>> MoveRecord
+S --> GM : 1.1.1.1.2: buildGame(rec)\n1.1.1.1.3: playTurn(2, 3, BLACK)
+GM --> B : 1.1.1.1.3.1: placePiece(2, 3, BLACK)
+B --> B : 1.1.1.1.3.1.1: piecesToFlip(2, 3, BLACK)\n1.1.1.1.3.1.2 [legal]: flipPieces(cells)
+B --> PC : 1.1.1.1.3.1.2.1* [legal, each cell]: flip()
+GM --> GM : 1.1.1.1.3.2 [legal]: advanceTurn(result) (SD-2a)
+G --> G : 1.2a [200]: render(state)
+G --> P : 1.2b [400]: showError('move not allowed')
+@enduml

@@ -1,9 +1,12 @@
-
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
 from database.services import GameService
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
 
 
 @api_view(['GET'])
@@ -43,3 +46,4 @@ def get_game(request, game_id):
         )
 
     return Response(game)
+    return Response({'status': 'ok'})

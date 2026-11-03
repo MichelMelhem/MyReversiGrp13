@@ -1,0 +1,76 @@
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Autentification
+    
+    state Authentification
+    {
+        Autentification --> Sign_In
+        Sign_In --> Connected : Id_and_psw_exists
+        Sign_In --> Incorect_Login : Id_and_psw_dont_exist
+        Incorect_Login --> Autentification 
+        Autentification --> Sign_Up : Need_to_register
+    }
+    Idle --> Random_Player_Search : Playing against a random player
+    
+    state Random_Player
+    {
+        Random_Player_Search --> Random_Player_Found
+        Random_Player_Found --> Black_Plays : StartGame
+        Random_Player_Search --> Random_Player_Not_Found 
+    }
+    Random_Player_Not_Found --> Idle
+
+    Idle--> Username_Entered : Playing against a chosen player
+
+    state Player_Via_Username
+    {
+        Username_Entered --> Unvalid_Username : Username dont_exists
+        Username_Entered --> Valid_Username : Username exists
+        
+        Valid_Username --> Username_Conected : player is connected rn
+        Valid_Username --> Unsername_Not_Conected : player is_not_connected
+        
+        Username_Conected --> Invited : invitation send
+        Invited --> Invite_Not_Accepted 
+        Invited --> Invite_Accepted
+        Invite_Accepted -->Black_Plays : start game
+    }
+    Unvalid_Username --> Idle 
+    Unsername_Not_Conected --> Idle
+    Invite_Not_Accepted --> Idle
+
+    Idle --> Computer : Playing against computer
+    Computer --> Black_Plays : Start Gamr
+
+    state Playing
+    {
+        Black_Plays --> Legal_Black_Move
+        Legal_Black_Move --> Board_Update
+        Board_Update --> White_Plays
+
+        Black_Plays --> Illegal_Black_Move
+        Illegal_Black_Move --> Black_Plays
+
+        Black_Plays --> No_More_Black_Move
+        No_More_Black_Move --> End_Game
+
+        White_Plays --> Legal_White_Move
+        Legal_White_Move --> Board_Update
+        Board_Update --> Black_Plays
+
+        White_Plays --> Illegal_White_Move
+        Illegal_White_Move --> White_Plays
+
+        White_Plays --> No_More_White_Move
+        No_More_White_Move --> End_Game
+
+        White_Plays --> Exit
+        Black_Plays --> Exit
+    }
+    End_Game --> Update_Score
+    Update_Score --> Update_Leaderboard
+    Update_Leaderboard --> Idle
+
+    Idle --> Exit
+    Exit --> [*]
+    

@@ -1,0 +1,63 @@
+classDiagram
+    direction LR
+
+    class game1 {
+        <<object>>
+        +int currentTurnIndex = 1
+        +GameState status = IN_PROGRESS
+    }
+
+    class board1 {
+        <<object>>
+        +int size = 8
+    }
+
+    class player1 {
+        <<object>>
+        +String name = "Rose"
+        +int score = 0
+        +PieceColor color = WHITE
+        +boolean isComputer = false
+    }
+
+    class player2 {
+        <<object>>
+        +String name = IAplayer
+        +int score = 0
+        +PieceColor color = BLACK
+        +boolean isComputer = true
+    }
+
+    class cellD4 {
+        <<object>>
+        +int row = 4
+        +int col = 4
+        +boolean isObstacle = false
+    }
+
+    class pieceD4 {
+        <<object>>
+        +PieceColor color = WHITE
+    }
+
+    class cellE5 {
+        <<object>>
+        +int row=5
+        +int col=4
+        +boolean isObstacle=false;
+    }
+    class pieceE5{
+        <<object>>
+        +PieceColor color= WHITE 
+    }
+  
+    
+
+    game1 --> board1 : board
+    game1 --> player1 : players[0]
+    game1 --> player2 : players[1]
+    board1 --> cellD4 : contains
+    board1 --> cellE5 : contains
+    cellD4 --> pieceD4 : holds
+    cellE5 --> pieceE5 : holds 
+    
