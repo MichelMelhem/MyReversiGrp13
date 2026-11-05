@@ -1,0 +1,95 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MyReversi</title>
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+  <header>
+    <h1 class="logo">Reversi</h1>
+    <button id="rules-btn" class="pill">View Rules</button>
+  </header>
+
+  <main>
+    <!-- Lobby page (UC-01 Start / Join game) -->
+    <section id="lobby-page" hidden>
+      <h2 class="big-title">Start game</h2>
+
+      <div class="panel">
+        <label for="name-input">Your name</label>
+        <input id="name-input" maxlength="30" placeholder="Enter your name">
+
+        <button id="create-btn" class="pill">Invite Player (new game)</button>
+        <button id="random-btn" class="pill">Random Player</button>
+        <button class="pill" disabled title="Not supported by the server yet">Computer (coming soon)</button>
+        <p id="lobby-message" class="message"></p>
+      </div>
+
+      <div class="panel">
+        <h3>Open games</h3>
+        <ul id="open-games" class="list"></ul>
+      </div>
+
+      <div class="panel">
+        <h3>Finished games</h3>
+        <ul id="history" class="list"></ul>
+      </div>
+    </section>
+
+    <!-- Game page (UC-02 Make move, UC-04 End game) -->
+    <section id="game-page" hidden>
+      <div class="game-top">
+        <button id="quit-btn" class="pill quit">Quit</button>
+        <div class="score">
+          <span id="black-label" class="player"></span>
+          <span id="score-text"></span>
+          <span id="white-label" class="player"></span>
+        </div>
+      </div>
+
+      <p id="share-text" class="info" hidden></p>
+      <div id="board" class="board"></div>
+      <p id="turn-text" class="info"></p>
+      <p id="message" class="message"></p>
+
+      <div id="result-box" class="panel result" hidden>
+        <h3 id="result-text"></h3>
+        <button id="back-btn" class="pill">Back to lobby</button>
+      </div>
+
+      <div id="replay-controls" class="replay" hidden>
+        <button id="prev-btn" class="pill">&lt; Prev</button>
+        <span id="replay-step"></span>
+        <button id="next-btn" class="pill">Next &gt;</button>
+        <button id="replay-back-btn" class="pill">Back to lobby</button>
+      </div>
+    </section>
+
+    <aside class="panel leaderboard">
+      <h3>Leaderboard</h3>
+      <ol id="leaderboard"></ol>
+    </aside>
+  </main>
+
+  <dialog id="rules-dialog">
+    <h3>How to play</h3>
+    <ul>
+      <li>Black moves first. Players take turns placing one disc.</li>
+      <li>A move must trap at least one line of the opponent's discs between the new disc and another disc of your colour (across, down or diagonal).</li>
+      <li>All trapped discs are flipped to your colour.</li>
+      <li>If you have no legal move, your turn is skipped.</li>
+      <li>The game ends when neither player can move. The player with the most discs wins.</li>
+    </ul>
+    <button id="close-rules" class="pill">Close</button>
+  </dialog>
+
+  <script src="{% static 'api.js' %}"></script>
+  <script src="{% static 'rules.js' %}"></script>
+  <script src="{% static 'lobby.js' %}"></script>
+  <script src="{% static 'game.js' %}"></script>
+  <script src="{% static 'app.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+/* Colours taken from the Phase 2 UI mockups */
+:root {
+  --bg: #fdeed2;
+  --green: #678d63;
+  --cell: #6f9a6b;
+  --lilac: #cbc0d4;
+  --text: #111;
+  --red: #c0392b;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+.leaderboard li.empty { list-style: none; margin-left: -24px; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+}
+
+.logo {
+  margin: 0;
+  font-family: "Arial Rounded MT Bold", Arial, sans-serif;
+  font-size: 48px;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+main {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 16px;
+  padding: 0 16px 24px;
+}
+
+.big-title {
+  text-align: center;
+  font-size: 56px;
+  margin: 8px 0 16px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.panel {
+  background: var(--green);
+  border-radius: 24px;
+  padding: 16px;
+  margin: 0 auto 16px;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panel h3 { margin: 0; text-align: center; }
+
+.leaderboard { align-self: start; width: 100%; }
+.leaderboard ol { margin: 0; padding-left: 24px; }
+
+label { font-weight: bold; }
+
+input {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+}
+
+.pill {
+  background: var(--lilac);
+  border: none;
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 18px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.pill:hover:not(:disabled) { filter: brightness(0.92); }
+.pill:disabled { opacity: 0.5; cursor: not-allowed; }
+.pill.quit { color: var(--red); }
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+.list .pill { font-size: 14px; padding: 4px 12px; }
+
+/* Game page */
+.game-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.score {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  font-size: 28px;
+}
+.player { font-size: 18px; padding: 4px 10px; border-radius: 12px; }
+.player.active { outline: 3px solid var(--green); }
+
+.board {
+  display: grid;
+  margin: 16px auto;
+  width: min(90vw, 480px);
+  aspect-ratio: 1;
+  border: 2px solid #000;
+  background: #000;
+  gap: 1px;
+}
+
+.cell {
+  background: var(--cell);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cell.legal { cursor: pointer; }
+
+.disc {
+  width: 78%;
+  height: 78%;
+  border-radius: 50%;
+}
+.disc.black { background: #000; }
+.disc.white { background: #fff; }
+.disc.hint {
+  width: 60%;
+  height: 60%;
+  background: linear-gradient(135deg, #8fb3d9, #5a8f8a);
+  opacity: 0.8;
+}
+
+.info { text-align: center; font-size: 22px; margin: 4px 0; }
+.message { text-align: center; color: var(--red); min-height: 1.2em; margin: 0; }
+.panel .message { color: #fff; }
+.result { text-align: center; color: #fff; }
+.result h3 { color: #fff; font-size: 26px; }
+
+.replay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+dialog {
+  border: none;
+  border-radius: 16px;
+  background: var(--bg);
+  max-width: 480px;
+}
+
+@media (max-width: 700px) {
+  main { grid-template-columns: 1fr; }
+  .big-title { font-size: 40px; }
+}
