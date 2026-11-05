@@ -36,4 +36,18 @@ python manage.py runserver      # http://127.0.0.1:8000/api/health/
 python manage.py test
 ```
 
+## Frontend (browser client)
+The client lives in [`frontend/`](./frontend) and is plain HTML, CSS and JavaScript (no build step). Django serves it, so it runs on the same address as the API:
+
+| File | Responsibility |
+|---|---|
+| `frontend/templates/index.html` | The single page: lobby, game board, replay and rules |
+| `frontend/static/api.js` | `ApiClient` - sends requests to `/api/...` |
+| `frontend/static/lobby.js` | `LobbyPage` - name, create / join games, open games, finished games |
+| `frontend/static/game.js` | `GamePage` (polls every 1.5 s, sends moves, shows the result) and `ReplayPage` |
+| `frontend/static/rules.js` | Highlights legal moves, counts discs and rebuilds boards for replays (display only, the server decides) |
+| `frontend/static/app.js` | `App` - switches between pages |
+
+Start the server as above and open http://127.0.0.1:8000/. To test two players on one computer, use two browser tabs.
+
 Settings read `DJANGO_SECRET_KEY`, `DJANGO_DEBUG` (`1`/`0`) and `DJANGO_ALLOWED_HOSTS` (comma-separated) from the environment, with local-dev defaults.
