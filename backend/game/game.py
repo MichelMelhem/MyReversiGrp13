@@ -109,19 +109,6 @@ class Game:
         self._update_scores()
         return result
 
-    def play_computer_turn(self):
-        """Let the current player choose its own move via ``make_move`` and
-        play it. Intended for the ComputerPlayer (UC-05)."""
-        if self.status is GameStatus.FINISHED:
-            raise GameOverError("The game is over")
-        if self.status is GameStatus.WAITING:
-            raise GameActionError("The game has not started yet")
-        player = self.get_current_player()
-        move = player.make_move(self.board)
-        if move is None:
-            raise GameActionError(f"{player.name} has no move to play")
-        return self.play_turn(*move, color=player.color)
-
     def check_game_over(self):
         """True if the game is finished. Also ends the game if neither player
         can move (e.g. a saved game that was left in that position)."""
