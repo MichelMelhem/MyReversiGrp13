@@ -3,11 +3,7 @@ from .player import Player
 
 
 class HumanPlayer(Player):
-    """A person playing in the browser.
-
-    The square they clicked is stored with ``select_square`` and handed
-    back once by ``make_move``.
-    """
+    #A person playing in the browser.
 
     def __init__(self, name, color):
         super().__init__(name, color)

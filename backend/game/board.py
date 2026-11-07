@@ -1,9 +1,10 @@
 """Board: the grid of cells and the placement rules."""
+
 from .cell import Cell
 from .errors import InvalidMoveError
 from .piece import Piece, PieceColor
 
-# The 8 directions a line of pieces can run in: (row step, col step).
+# row step, col step.
 DIRECTIONS = (
     (-1, -1), (-1, 0), (-1, 1),
     (0, -1),           (0, 1),
@@ -14,7 +15,7 @@ EMPTY = 0   # stored board: 0 = empty, 1 = black, 2 = white
 
 
 class Board:
-    """A square grid of 6x6, 8x8 or 10x10 cells (custom feature 5).
+    """A square grid of 6x6, 8x8 or 10x10 cells custom feature 5.
 
     A Position is a ``(row, col)`` tuple, both counted from 0.
     """
@@ -37,6 +38,7 @@ class Board:
         White on the top-left/bottom-right diagonal, Black on the other,
         so on 8x8 this is D4 = White, E4 = Black, D5 = Black, E5 = White.
         """
+
         for row in self.cells:
             for cell in row:
                 cell.set_piece(None)
@@ -155,7 +157,7 @@ class Board:
 
     @staticmethod
     def from_list(grid):
-        """Rebuild a Board from ``to_list()`` output (or a saved Game.board).
+        """Rebuild a Board from ``to_list()`` output or a saved Game.board.
 
         Raises ValueError if the grid is not square, has an unsupported
         size, or contains anything other than 0, 1 or 2.

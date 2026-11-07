@@ -1,6 +1,4 @@
-"""Pure-Python Reversi rules (board, pieces, players, turn logic).
-
-No Django imports here, so the logic can be tested and reused on its own.
+"""Python Reversi rules for board, pieces, players, and turn logic.
 
     from game import Game, HumanPlayer, PieceColor
 
