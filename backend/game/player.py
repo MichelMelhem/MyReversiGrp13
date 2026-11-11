@@ -18,10 +18,10 @@ class Player(ABC):
     @abstractmethod
     def make_move(self, board):
         pass
-        #Return the (row, col) to play, or None if there is no move.
+        # return the (row, col) to play, or None if there is no move.
 
     def update_score(self, points):
-        #Set the score (the number of pieces this player has on the board).
+        # set the score where the score is the number of pieces this player has on the board.
         self.score = points
 
     def get_name(self):

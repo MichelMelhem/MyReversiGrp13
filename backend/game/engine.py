@@ -1,24 +1,24 @@
 """Simple function interface to the rules, for the API layer.
 
-This is the "engine interface" agreed for GameService: plain JSON-style
-values in (the saved board and "black"/"white"), plain values out. Inside,
-it uses the Game / Board / Player classes from the domain model.
+This is the engine interface agreed for GameService in plain JSON-style
+Values in (the saved board and "black"/"white"), plain values out. 
+Inside, it uses the Game / Board / Player classes from the domain model.
 
     from game import engine
 
     result = engine.play_turn(game.board, game.current_turn, row, col)
-    # {
-    #   "board": [[0, 0, ...], ...],   # updated board, 0 empty / 1 black / 2 white
-    #   "next_turn": "white",          # None once the game is over
-    #   "flipped": [[3, 3]],
-    #   "skipped": None,               # "white" if White had to pass (UC-03)
-    #   "game_over": False,
-    #   "winner": None,                # "black", "white" or "draw" when over
-    #   "scores": {"black": 4, "white": 1},
-    # }
-
-Illegal moves raise InvalidMoveError (a ValueError) and nothing changes.
+    {
+        "board": [[0, 0, ...], ...],   // updated board, 0 empty / 1 black / 2 white
+        "next_turn": "white",          // None once the game is over
+        "flipped": [[3, 3]],
+        "skipped": None,               // "white" if White had to pass
+        "game_over": False,
+        "winner": None,                // "black", "white" or "draw" when over
+        "scores": {"black": 4, "white": 1},
+    }
+Illegal moves raise InvalidMoveError and nothing changes.
 """
+
 from .board import Board
 from .game import Game, GameStatus
 from .human_player import HumanPlayer
@@ -26,7 +26,7 @@ from .piece import PieceColor
 
 
 def _load(board, current_turn):
-    """Rebuild a running Game from a saved board and whose turn it is."""
+    # rebuild a running Game from a saved board and whose turn it is.
     game = Game(
         HumanPlayer("black", PieceColor.BLACK),
         HumanPlayer("white", PieceColor.WHITE),
@@ -44,14 +44,14 @@ def _winner_name(game):
 
 
 def starting_board(size=8):
-    """A new board with the 4 centre pieces, as a list of int rows."""
+    # a new board with the 4 centre pieces as a list of int rows.
     board = Board(size)
     board.initialize()
     return board.to_list()
 
 
 def valid_moves(board, colour):
-    """Legal [row, col] squares for "black" or "white" on a saved board."""
+    # legal [row, col] squares for black or white on a saved board.
     return [list(m) for m in Board.from_list(board).get_valid_moves(PieceColor.from_name(colour))]
 
 
@@ -61,8 +61,7 @@ def scores(board):
 
 
 def play_turn(board, current_turn, row, col):
-    """Play (row, col) for ``current_turn`` and report what happened.
-
+    """Play (row, col) for current_turn and report what happened.
     Raises InvalidMoveError if the move is illegal, ValueError if the board
     or colour is malformed.
     """
@@ -81,6 +80,6 @@ def play_turn(board, current_turn, row, col):
 
 
 def is_game_over(board):
-    """True if neither colour can move on this board."""
+    # True if neither colour can move on this board.
     b = Board.from_list(board)
     return not (b.has_valid_move(PieceColor.BLACK) or b.has_valid_move(PieceColor.WHITE))

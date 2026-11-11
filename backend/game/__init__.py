@@ -1,16 +1,16 @@
-"""Python Reversi rules for board, pieces, players, and turn logic.
+"""Reversi rules for board, pieces, players, and turn logic.
 
     from game import Game, HumanPlayer, PieceColor
 
     game = Game(HumanPlayer("Ana", PieceColor.BLACK),
                 HumanPlayer("Ben", PieceColor.WHITE))
     game.start()
-    result = game.play_turn(2, 3)        # Black plays D3
-    result = game.play_turn(2, 2)        # White replies
+    result = game.play_turn(2, 3) // black plays D3
+    result = game.play_turn(2, 2) // white replies
 
-The API layer works with saved JSON boards, so it uses ``game.engine``
-(play_turn, valid_moves, scores) instead of the classes directly.
+The API layer uses game.engine (play_turn, valid_moves, scores) instead of the classes directly.
 """
+
 from . import engine
 from .board import Board
 from .cell import Cell

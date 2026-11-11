@@ -1,4 +1,4 @@
-"""Board: the grid of cells and the placement rules."""
+# Board: the grid of cells and the placement rules
 
 from .cell import Cell
 from .errors import InvalidMoveError
@@ -11,14 +11,12 @@ DIRECTIONS = (
     (1, -1),  (1, 0),  (1, 1),
 )
 
-EMPTY = 0   # stored board: 0 = empty, 1 = black, 2 = white
+EMPTY = 0   # 0 = empty, 1 = black, 2 = white
 
 
 class Board:
     """A square grid of 6x6, 8x8 or 10x10 cells custom feature 5.
-
-    A Position is a ``(row, col)`` tuple, both counted from 0.
-    """
+    A Position is a (row, col) tuple"""
 
     SUPPORTED_SIZES = (6, 8, 10)
 
@@ -30,13 +28,12 @@ class Board:
         self.size = size
         self.cells = [[Cell(r, c) for c in range(size)] for r in range(size)]
 
-    # --- set-up -----------------------------------------------------------
+    # setup
 
     def initialize(self):
-        """Clear the board and place the 4 starting pieces in the centre.
-
-        White on the top-left/bottom-right diagonal, Black on the other,
-        so on 8x8 this is D4 = White, E4 = Black, D5 = Black, E5 = White.
+        """Clear board and place 4 starting pieces in the centre.
+        White on the top left/bottom right diagonal, black on other,
+        so on 8x8 this is D4 = white, E4 = black, D5 = black, E5 = white.
         """
 
         for row in self.cells:
@@ -48,7 +45,7 @@ class Board:
         self.cells[m - 1][m].set_piece(Piece(PieceColor.BLACK))
         self.cells[m][m - 1].set_piece(Piece(PieceColor.BLACK))
 
-    # --- lookups ------------------------------------------------------------
+    # lookups
 
     def in_bounds(self, row, col):
         return 0 <= row < self.size and 0 <= col < self.size
@@ -62,12 +59,11 @@ class Board:
         """Every cell, row by row."""
         return [cell for row in self.cells for cell in row]
 
-    # --- rules --------------------------------------------------------------
+    # rules
 
     def pieces_to_flip(self, row, col, color):
-        """Cells that would be flipped if ``color`` played at (row, col).
-
-        Returns an empty list if the square is off the board, occupied,
+        """Cells that would be flipped if color played at (row, col).
+        Returns empty list if the square is off the board, occupied,
         or the move outflanks nothing.
         """
         if not self.in_bounds(row, col) or not self.cells[row][col].is_empty():
@@ -92,8 +88,8 @@ class Board:
         return bool(self.pieces_to_flip(row, col, color))
 
     def get_valid_moves(self, color):
-        """All (row, col) positions ``color`` can play, in row order.
-        Used to highlight possible moves (custom feature 4)."""
+        """All (row, col) positions color can play, in row order.
+        Used to highlight possible moves."""
         return [
             (r, c)
             for r in range(self.size)
@@ -102,7 +98,7 @@ class Board:
         ]
 
     def has_valid_move(self, color):
-        """True if ``color`` has at least one legal move (drives UC-03/UC-04).
+        """True if color has at least one legal move
         Stops at the first legal move it finds."""
         return any(
             self.is_valid_move(r, c, color)
@@ -112,9 +108,8 @@ class Board:
 
     def place_piece(self, row, col, color):
         """Play a move: place a piece and flip every outflanked piece.
-
         Returns the list of flipped cells. Raises InvalidMoveError and leaves
-        the board unchanged if the move is not legal.
+        the board unchanged if move is not legal.
         """
         if not self.in_bounds(row, col):
             raise InvalidMoveError(f"({row}, {col}) is off the board")
@@ -134,7 +129,7 @@ class Board:
         for cell in cells:
             cell.get_piece().flip()
 
-    # --- state --------------------------------------------------------------
+    # state
 
     def count(self, color):
         """Number of pieces of this colour (that player's score)."""
@@ -149,7 +144,7 @@ class Board:
 
     def to_list(self):
         """The board as rows of ints: 0 empty, 1 black, 2 white.
-        This is exactly what ``database.models.Game.board`` stores."""
+        database.models.Game.board stores."""
         return [
             [EMPTY if cell.is_empty() else cell.get_color().code for cell in row]
             for row in self.cells
@@ -157,8 +152,7 @@ class Board:
 
     @staticmethod
     def from_list(grid):
-        """Rebuild a Board from ``to_list()`` output or a saved Game.board.
-
+        """Rebuild a Board from to_list() output or a saved Game.board.
         Raises ValueError if the grid is not square, has an unsupported
         size, or contains anything other than 0, 1 or 2.
         """

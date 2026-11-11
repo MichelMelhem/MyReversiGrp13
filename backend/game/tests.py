@@ -1,9 +1,3 @@
-"""Tests for the game rules.
-
-Plain unittest (no Django needed), so either of these works from backend/:
-    python manage.py test game
-    python -m unittest game.tests
-"""
 import unittest
 
 from game import engine
@@ -21,8 +15,6 @@ CODES = {".": 0, "B": 1, "W": 2}
 
 
 def grid(*rows):
-    """Build a stored board (ints) from readable strings, e.g.
-    grid("BW....", "......", ...) -> [[1, 2, 0, 0, 0, 0], [0, ...], ...]."""
     return [[CODES[ch] for ch in row] for row in rows]
 
 
@@ -129,13 +121,13 @@ class BoardTests(unittest.TestCase):
         self.assertEqual(clone.to_list(), board.to_list())
         copy = board.copy()
         copy.place_piece(*copy.get_valid_moves(B)[0], B)
-        self.assertNotEqual(copy.to_list(), board.to_list())   # original untouched
+        self.assertNotEqual(copy.to_list(), board.to_list())
 
     def test_from_list_rejects_bad_grids(self):
         with self.assertRaises(ValueError):
-            Board.from_list([[0] * 7 for _ in range(7)])       # size 7
+            Board.from_list([[0] * 7 for _ in range(7)])
         with self.assertRaises(ValueError):
-            Board.from_list([[0] * 6 for _ in range(5)])       # not square
+            Board.from_list([[0] * 6 for _ in range(5)])
         bad = [[0] * 6 for _ in range(6)]
         bad[0][0] = 3
         with self.assertRaises(ValueError):
@@ -177,7 +169,6 @@ class GameTests(unittest.TestCase):
         game.start()
         with self.assertRaises(NotYourTurnError):
             game.play_turn(2, 4, W)
-        # NotYourTurnError is also an InvalidMoveError
         with self.assertRaises(InvalidMoveError):
             game.play_turn(2, 4, W)
 
@@ -197,13 +188,11 @@ class GameTests(unittest.TestCase):
         game = new_game(board)
         game.resume(B, GameStatus.IN_PROGRESS)
 
-        # After Black takes row 0, White's only piece (F row) cannot move: skip.
         result = game.play_turn(0, 2)
         self.assertIs(result.skipped, W)
         self.assertFalse(result.game_over)
         self.assertIs(game.get_current_player().color, B)
 
-        # Black's next move takes White's last piece: nobody can move.
         result = game.play_turn(5, 2)
         self.assertTrue(result.game_over)
         self.assertIs(game.status, GameStatus.FINISHED)
@@ -255,11 +244,10 @@ class PlayerTests(unittest.TestCase):
         self.assertIsNone(human.make_move(None))
         human.select_square(2, 3)
         self.assertEqual(human.make_move(None), (2, 3))
-        self.assertIsNone(human.make_move(None))     # used once
+        self.assertIsNone(human.make_move(None))
 
 
 class EngineTests(unittest.TestCase):
-    """The function interface used by GameService."""
 
     def test_opening_move(self):
         result = engine.play_turn(engine.starting_board(8), "black", 2, 3)
@@ -282,7 +270,7 @@ class EngineTests(unittest.TestCase):
         board = engine.starting_board(8)
         with self.assertRaises(InvalidMoveError):
             engine.play_turn(board, "black", 0, 0)
-        with self.assertRaises(ValueError):     # what the API view turns into 400
+        with self.assertRaises(ValueError):
             engine.play_turn(board, "black", 3, 3)
 
     def test_bad_colour(self):
@@ -301,7 +289,6 @@ class EngineTests(unittest.TestCase):
         self.assertTrue(engine.is_game_over(last["board"]))
 
     def test_draw_result(self):
-        # Black's last move leaves 3 black and 3 white, nobody can move.
         board = grid("BW.WWW", "......", "......", "......", "......", "......")
         result = engine.play_turn(board, "black", 0, 2)
         self.assertTrue(result["game_over"])
@@ -314,7 +301,6 @@ class EngineTests(unittest.TestCase):
 
 
 class FullGameTests(unittest.TestCase):
-    """Play whole games with random legal moves and check the rules hold."""
 
     def play_out(self, size, seed):
         rng = random.Random(seed)

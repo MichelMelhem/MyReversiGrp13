@@ -1,4 +1,4 @@
-"""Game: turns, skipping and the end of the game."""
+# Game: turns, skipping and the end of the game.
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -15,10 +15,9 @@ class GameStatus(Enum):
 
 @dataclass
 class TurnResult:
-    """What happened when a move was played (returned by ``Game.play_turn``).
-
-    ``skipped`` is the colour that had to pass because it had no legal move
-    (UC-03), or None. ``game_over`` is True if this move ended the game (UC-04).
+    """What happened when a move was played, returned by Game.play_turn.
+    skipped is the colour that had to pass because it had no legal move. 
+    game_over is True if this move ended the game.
     """
 
     color: PieceColor
@@ -31,8 +30,7 @@ class TurnResult:
 
 class Game:
     """Controls one game of Reversi.
-
-    ``players[0]`` is Black and ``players[1]`` is White; Black moves first.
+    players[0] is black and players[1] is white.
     """
 
     def __init__(self, black, white, board=None, size=8):
@@ -47,7 +45,7 @@ class Game:
     # --- starting -----------------------------------------------------------
 
     def start(self):
-        """Set up a new board and give Black the first move (UC-01)."""
+        # set up a new board and give black the first move.
         if self.status is not GameStatus.WAITING:
             raise GameActionError("The game has already started")
         self.board.initialize()
@@ -65,7 +63,7 @@ class Game:
         self.forfeited_by = forfeited_by
         self._update_scores()
 
-    # --- queries ------------------------------------------------------------
+    # queries
 
     def get_current_player(self):
         return self.players[self.current_player_index]
@@ -74,20 +72,21 @@ class Game:
         return self.players[self._index_of(color)]
 
     def valid_moves(self):
-        """Legal moves for the player whose turn it is ([] if not in progress)."""
+        # legal moves for the player whose turn it is ([] if not in progress).
         if self.status is not GameStatus.IN_PROGRESS:
             return []
         return self.board.get_valid_moves(self.get_current_player().color)
 
-    # --- playing ------------------------------------------------------------
+    # playing
 
     def play_turn(self, row, col, color=None):
-        """Play a move for the current player (UC-02), then pass the turn,
-        skip the opponent (UC-03) or end the game (UC-04).
-
-        ``color`` is the colour of the player asking to move; if given, it
-        must be the current player's. Raises GameOverError, NotYourTurnError,
-        GameActionError or InvalidMoveError. On any error nothing changes.
+        """Play a move for the current player, then pass the turn,
+        skip the opponent or end the game.
+        color is the color of the player asking to move; if given, it
+        must be the current player's. 
+        Raises GameOverError, NotYourTurnError,
+        GameActionError or InvalidMoveError. 
+        On any error nothing changes.
         """
         if self.status is GameStatus.FINISHED:
             raise GameOverError("The game is over")
@@ -98,7 +97,7 @@ class Game:
         if color is not None and color is not mover:
             raise NotYourTurnError(f"It is {mover.value}'s turn")
 
-        flipped = self.board.place_piece(row, col, mover)  # may raise InvalidMoveError
+        flipped = self.board.place_piece(row, col, mover)
         result = TurnResult(
             color=mover,
             row=row,
@@ -123,14 +122,14 @@ class Game:
         return False
 
     def forfeit(self, color):
-        """``color`` gives up; the other player wins."""
+        # color gives up so the other player wins.
         if self.status is GameStatus.FINISHED:
             raise GameOverError("The game is already over")
         self.forfeited_by = color
         self.status = GameStatus.FINISHED
 
     def get_winner(self):
-        """The winning Player, or None for a draw or an unfinished game."""
+        # the winning Player, or None for a draw or an unfinished game."""
         if self.status is not GameStatus.FINISHED:
             return None
         if self.forfeited_by is not None:
@@ -144,7 +143,7 @@ class Game:
     def is_draw(self):
         return self.status is GameStatus.FINISHED and self.get_winner() is None
 
-    # --- internals ----------------------------------------------------------
+    # internals
 
     def _advance_turn(self, result):
         mover = result.color
@@ -152,9 +151,9 @@ class Game:
         if self.board.has_valid_move(opponent):
             self.current_player_index = self._index_of(opponent)
         elif self.board.has_valid_move(mover):
-            result.skipped = opponent          # opponent passes, mover goes again
+            result.skipped = opponent
         else:
-            self.status = GameStatus.FINISHED  # nobody can move
+            self.status = GameStatus.FINISHED
             result.game_over = True
 
     def _update_scores(self):

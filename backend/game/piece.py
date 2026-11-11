@@ -3,23 +3,23 @@ from enum import Enum
 
 
 class PieceColor(Enum):
-    #The two sides of a disc. Black always moves first.
+    # the two sides of a disc. Black always moves first.
 
     BLACK = "black"
     WHITE = "white"
 
     def opponent(self):
-        #Return the other colour.
+        # return the other colour.
         return PieceColor.WHITE if self is PieceColor.BLACK else PieceColor.BLACK
 
     @property
     def code(self):
-        #Number used in the stored/JSON board: 1 = black, 2 = white, 0 = empty
+        # number used in the stored/JSON board: 1 = black, 2 = white, 0 = empty
         return 1 if self is PieceColor.BLACK else 2
 
     @classmethod
     def from_code(cls, code):
-        #Raises ValueError for anything else.
+        # raises ValueError for anything else.
         for color in cls:
             if color.code == code:
                 return color
@@ -27,7 +27,7 @@ class PieceColor(Enum):
 
     @classmethod
     def from_name(cls, name):
-        #black" -> BLACK, "white" -> WHITE
+        # "black" -> BLACK, "white" -> WHITE
         try:
             return cls(name)
         except ValueError:
@@ -35,7 +35,7 @@ class PieceColor(Enum):
 
 
 class Piece:
-    #A disc on the board. It always sits on exactly one Cell.
+    # a disc on the board. Sits on exactly one Cell.
 
     def __init__(self, color):
         if not isinstance(color, PieceColor):

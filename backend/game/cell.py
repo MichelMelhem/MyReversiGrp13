@@ -1,9 +1,9 @@
-"""Cell: one square of the board."""
+# Cell: one square of the board.
 from .piece import Piece
 
 
 class Cell:
-    """One square of the board. Holds zero or one Piece (composition)."""
+    """One square of the board. Holds zero or one Piece."""
 
     def __init__(self, row, col):
         self.row = row
@@ -11,7 +11,7 @@ class Cell:
         self.piece = None           # Piece or None
 
     def set_piece(self, piece):
-        """Put a piece on the cell, or clear it with ``None``."""
+        # put a piece on the cell, or clear it with None.
         if piece is not None and not isinstance(piece, Piece):
             raise TypeError("piece must be a Piece or None")
         self.piece = piece
@@ -23,15 +23,15 @@ class Cell:
         return self.piece is None
 
     def get_color(self):
-        """Colour of the piece on this cell, or None if empty."""
+        # colour of the piece on this cell, or None if empty.
         return None if self.piece is None else self.piece.color
 
     def get_position(self):
-        """(row, col) tuple, the Position type used in the diagram."""
+        # (row, col) tuple."
         return (self.row, self.col)
 
     def get_label(self):
-        """Square name shown to players, e.g. row 2, col 3 -> "D3"."""
+        # square name shown to players
         return f"{chr(ord('A') + self.col)}{self.row + 1}"
 
     def __repr__(self):
