@@ -3,6 +3,7 @@ from django.db import transaction
 from database.models import Game, PlayerProfile, MoveRecord
 from datetime import timedelta
 from django.utils import timezone
+from game import engine
 
 class GameService:
     @staticmethod
@@ -288,36 +289,85 @@ class GameService:
 
     @staticmethod
     def make_move(game_id, token, row, col):
-        try:
-            game = Game.objects.get(id=game_id)
-        except Game.DoesNotExist:
-            raise LookupError("Game not found.")
+        # One transaction with a row lock, so two moves sent at the same
+        # moment cannot both be applied (vulnerability review V4).
+        with transaction.atomic():
+            try:
+                game = Game.objects.select_for_update().get(id=game_id)
+            except Game.DoesNotExist:
+                raise LookupError("Game not found.")
 
-        if not token:
-            raise PermissionError("Token is required to make a move.")
+            if not token:
+                raise PermissionError("Token is required to make a move.")
 
-        if game.black_token and secrets.compare_digest(token, game.black_token):
-            player_colour = 'black'
-        elif game.white_token and secrets.compare_digest(token, game.white_token):
-            player_colour = 'white'
-        else:
-            raise PermissionError("Invalid token. You are not authorized to make a move in this game.")
+            if game.black_token and secrets.compare_digest(token, game.black_token):
+                player_colour = 'black'
+            elif game.white_token and secrets.compare_digest(token, game.white_token):
+                player_colour = 'white'
+            else:
+                raise PermissionError("Invalid token. You are not authorized to make a move in this game.")
 
-        if game.status != 'in_progress':
-            raise ValueError("Game is not in progress. Cannot make a move.")
-        
-        if player_colour != game.current_turn:
-            raise ValueError(f"It is not {player_colour}'s turn.")
+            if game.status != 'in_progress':
+                raise ValueError("Game is not in progress. Cannot make a move.")
 
-        if type(row) is not int or type(col) is not int:
-            raise ValueError("Row and column must be integers.")
+            if player_colour != game.current_turn:
+                raise ValueError(f"It is not {player_colour}'s turn.")
 
-        if not (0 <= row < game.board_size and 0 <= col < game.board_size):
-            raise ValueError("Invalid row or column. Please choose a position within the board.")
+            if type(row) is not int or type(col) is not int:
+                raise ValueError("Row and column must be integers.")
 
-        #FIX THIS ONCE GAME LOGIC IS IMPLEMENTED
-        #REPLACE SECTION WITH CALLS TO GAME LOGIC FUNCTIONS
-        raise NotImplementedError("Move validation and execution logic is not implemented yet.")
+            if not (0 <= row < game.board_size and 0 <= col < game.board_size):
+                raise ValueError("Invalid row or column. Please choose a position within the board.")
+
+            # The rules engine checks the move and works out flips, skips and
+            # the end of the game. An illegal move raises InvalidMoveError
+            # (a ValueError, so the view returns 400) and nothing is saved.
+            outcome = engine.play_turn(game.board, game.current_turn, row, col)
+
+            MoveRecord.objects.create(
+                game=game,
+                number=game.moves.count() + 1,
+                colour=player_colour,
+                row=row,
+                col=col,
+            )
+
+            game.board = outcome["board"]
+            if outcome["game_over"]:
+                game.status = 'finished'
+                game.result = outcome["winner"]     # "black", "white" or "draw"
+                GameService.record_result(game)
+            else:
+                game.current_turn = outcome["next_turn"]
+
+            # A move also counts as being active for the reconnect window.
+            setattr(game, f"{player_colour}_last_seen", timezone.now())
+            game.save()
+
+            result = GameService.serialize_game(game)
+            result['your_colour'] = player_colour
+            result['flipped'] = outcome["flipped"]
+            result['skipped'] = outcome["skipped"]
+            return result
+
+    @staticmethod
+    def record_result(game):
+        """Update both players' leaderboard totals for a finished game."""
+        if game.result == 'draw':
+            for profile in (game.black_profile, game.white_profile):
+                if profile:
+                    profile.draws += 1
+                    profile.save(update_fields=['draws'])
+            return
+
+        winner_profile = game.black_profile if game.result == 'black' else game.white_profile
+        loser_profile = game.white_profile if game.result == 'black' else game.black_profile
+        if winner_profile:
+            winner_profile.wins += 1
+            winner_profile.save(update_fields=['wins'])
+        if loser_profile:
+            loser_profile.losses += 1
+            loser_profile.save(update_fields=['losses'])
 
     @staticmethod
     def get_available_games():

@@ -292,9 +292,9 @@ class GameAPITests(TestCase):
 
         self.assertEqual(response.status_code, 400)
 
-    # TEST 11: Valid move reaches engine placeholder
+    # TEST 11: Valid move is played by the engine
 
-    def test_valid_move_reaches_engine_placeholder(self):
+    def test_valid_move_is_played(self):
         create_response = self.client.post(
             "/api/games/", data={}, format="json"
         )
@@ -329,8 +329,111 @@ class GameAPITests(TestCase):
             HTTP_X_PLAYER_TOKEN=black_token
         )
 
-        # change this when engine is implemented
-        self.assertEqual(response.status_code, 501)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["board"][2][3], 1)    # new black piece
+        self.assertEqual(response.data["board"][3][3], 1)    # flipped
+        self.assertEqual(response.data["flipped"], [[3, 3]])
+        self.assertEqual(response.data["current_turn"], "white")
+        self.assertEqual(response.data["your_colour"], "black")
+        self.assertEqual(response.data["status"], "in_progress")
+
+        move = MoveRecord.objects.get(game_id=game_id)
+        self.assertEqual((move.number, move.colour, move.row, move.col), (1, "black", 2, 3))
+
+    # --- helpers and tests for the rules engine integration ---------------
+
+    def start_online_game(self):
+        """Create a game, join two players, return (game_id, black_token, white_token)."""
+        game_id = self.client.post("/api/games/", data={}, format="json").data["id"]
+        alice = self.client.post(f"/api/games/{game_id}/join/", data={"name": "Alice"}, format="json")
+        bob = self.client.post(f"/api/games/{game_id}/join/", data={"name": "Bob"}, format="json")
+        black_name = Game.objects.get(id=game_id).black_player
+        if black_name == "Alice":
+            return game_id, alice.data["player_token"], bob.data["player_token"]
+        return game_id, bob.data["player_token"], alice.data["player_token"]
+
+    def move(self, game_id, token, row, col):
+        return self.client.post(
+            f"/api/games/{game_id}/moves/",
+            data={"row": row, "col": col},
+            format="json",
+            HTTP_X_PLAYER_TOKEN=token,
+        )
+
+    def test_illegal_move_is_rejected_and_nothing_changes(self):
+        game_id, black_token, _ = self.start_online_game()
+        before = Game.objects.get(id=game_id).board
+
+        response = self.move(game_id, black_token, 0, 0)   # flips nothing
+
+        self.assertEqual(response.status_code, 400)
+        game = Game.objects.get(id=game_id)
+        self.assertEqual(game.board, before)
+        self.assertEqual(game.current_turn, "black")
+        self.assertFalse(MoveRecord.objects.filter(game_id=game_id).exists())
+
+    def test_occupied_square_is_rejected(self):
+        game_id, black_token, _ = self.start_online_game()
+        response = self.move(game_id, black_token, 3, 3)
+        self.assertEqual(response.status_code, 400)
+
+    def test_players_alternate_and_moves_are_numbered(self):
+        game_id, black_token, white_token = self.start_online_game()
+
+        self.assertEqual(self.move(game_id, black_token, 2, 3).status_code, 200)
+        self.assertEqual(self.move(game_id, black_token, 2, 2).status_code, 400)  # not black's turn
+        self.assertEqual(self.move(game_id, white_token, 2, 2).status_code, 200)
+
+        moves = list(MoveRecord.objects.filter(game_id=game_id).values_list("number", "colour"))
+        self.assertEqual(moves, [(1, "black"), (2, "white")])
+        self.assertEqual(Game.objects.get(id=game_id).current_turn, "black")
+
+    def test_finishing_move_ends_game_and_updates_leaderboard(self):
+        game_id, black_token, _ = self.start_online_game()
+        game = Game.objects.get(id=game_id)
+        # Near-final position: Black plays (0, 2) and takes White's last piece.
+        game.board = [[1, 2, 0, 0, 0, 0, 0, 0]] + [[0] * 8 for _ in range(7)]
+        game.save()
+
+        response = self.move(game_id, black_token, 0, 2)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], "finished")
+        self.assertEqual(response.data["result"], "black")
+        game.refresh_from_db()
+        self.assertEqual(game.black_profile.wins, 1)
+        self.assertEqual(game.white_profile.losses, 1)
+        self.assertEqual(self.move(game_id, black_token, 1, 1).status_code, 400)
+
+    def test_draw_updates_both_profiles(self):
+        game_id, black_token, _ = self.start_online_game()
+        game = Game.objects.get(id=game_id)
+        # Black plays (0, 3): row 0 becomes 4 black + 4 white, nobody can move.
+        game.board = [[1, 1, 2, 0, 2, 2, 2, 2]] + [[0] * 8 for _ in range(7)]
+        game.save()
+
+        response = self.move(game_id, black_token, 0, 3)
+
+        self.assertEqual(response.data["result"], "draw")
+        game.refresh_from_db()
+        self.assertEqual(game.black_profile.draws, 1)
+        self.assertEqual(game.white_profile.draws, 1)
+
+    def test_skip_keeps_turn_with_mover(self):
+        game_id, black_token, _ = self.start_online_game()
+        game = Game.objects.get(id=game_id)
+        rows = [[0] * 8 for _ in range(8)]
+        rows[0][:2] = [1, 2]
+        rows[7][:2] = [1, 2]
+        game.board = rows
+        game.save()
+
+        response = self.move(game_id, black_token, 0, 2)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["skipped"], "white")
+        self.assertEqual(response.data["current_turn"], "black")
+        self.assertEqual(response.data["status"], "in_progress")
 
     # TEST 12: Nonexistent game returns 404
 
